@@ -3,6 +3,7 @@ package com.hdil.rebloomlens.rebloomlens.core
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
+import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import org.json.JSONObject
 
 //ROLE  dynamically load plugin (init, register, load UI)
@@ -33,13 +34,9 @@ object PluginManager {
     }
 
     private fun createPlugin(pluginId: String, config: JSONObject): Plugin? {
-        return try {
-            val className = "plugins.$pluginId.${pluginId.capitalize()}Plugin"
-            val pluginClass = Class.forName(className).getConstructor(String::class.java, JSONObject::class.java)
-            pluginClass.newInstance(pluginId, config) as? Plugin
-        } catch (e: Exception) {
-            Log.e("PluginManager", "Error creating pluign: ${e.message}")
-            null
+        return when (pluginId) {
+            "likert_scale" -> com.hdil.rebloomlens.likert_scale.LikertScalePlugin(pluginId, config)
+            else -> null
         }
     }
 

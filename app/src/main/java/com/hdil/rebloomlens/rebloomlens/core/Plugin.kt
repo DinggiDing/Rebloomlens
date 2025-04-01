@@ -6,11 +6,11 @@ import org.json.JSONObject
 
 //ROLE  All plugin have this format
 
-interface Plugin {
-    val pluginId: String
-    val config: JSONObject
-
-    fun initialize(context: Context)
-    @Composable
-    fun renderUI()
-}
+//interface Plugin {
+//    val pluginId: String
+//    val config: JSONObject
+//
+//    fun initialize(context: Context)
+//    @Composable
+//    fun renderUI()
+//}
