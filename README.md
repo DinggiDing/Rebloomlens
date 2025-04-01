@@ -19,7 +19,8 @@
 ├── common/                           # 공통 인터페이스 모듈
 │   ├── plugin_interfaces/           
 │   │    └── Plugin.kt                
-│   └── build.gradle.kts             
+│   └── build.gradle.kts
+│
 ├── 📁 plugins/                          # 플러그인 모듈 디렉토리
 │   ├── likert_scale/                 # Likert Scale 플러그인 폴더
 │   │    ├── src/                    
@@ -30,7 +31,8 @@
 │        ├── src/                     
 │        │    └── StepCounterPlugin.kt 
 │        ├── config.json              
-│        └── build.gradle.kts       
+│        └── build.gradle.kts
+│   
 ├── settings.gradle.kts               # 전체 모듈 설정 파일
 └── build.gradle.kts                  # 루트 빌드 설정 파일
 ```
