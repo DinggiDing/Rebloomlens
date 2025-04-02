@@ -1,4 +1,4 @@
-package com.hdil.rebloomlens.aaa
+package com.hdil.rebloomlens.manualInput_plugins.text_input
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,9 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.hdil.rebloomlens.aaa.test", appContext.packageName)
+        assertEquals(
+            "com.hdil.rebloomlens.manualInput_plugins.text_input.test",
+            appContext.packageName
+        )
     }
 }

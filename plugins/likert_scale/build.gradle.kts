@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.hdil.rebloomlens.likert_scale"
+    namespace = "com.hdil.rebloomlens.plugin.likert_scale"
     compileSdk = 35
 
     defaultConfig {

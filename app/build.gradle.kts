@@ -41,7 +41,9 @@ android {
 
 dependencies {
     implementation(project(":plugins:likert_scale"))
+    implementation(project(":manualInput_plugins:text_input"))
     implementation(project(":common"))
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

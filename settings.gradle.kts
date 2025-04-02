@@ -23,12 +23,6 @@ rootProject.name = "Rebloomlens"
 include(":app")
 //include(":plugins:likert_scale")
 
-// Automatic Inclusion of Plugin Modules
-file("plugins").listFiles()?.forEach { dir ->
-    if (dir.isDirectory) {
-        include(":plugins:${dir.name}")
-    }
-}
 include(":common")
-include(":plugins:aaa")
 include(":plugins:likert_scale")
+include(":manualInput_plugins:text_input")

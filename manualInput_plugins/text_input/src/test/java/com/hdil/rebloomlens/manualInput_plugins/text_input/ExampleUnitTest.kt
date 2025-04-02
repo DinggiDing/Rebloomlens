@@ -1,4 +1,4 @@
-package com.hdil.rebloomlens.aaa
+package com.hdil.rebloomlens.manualInput_plugins.text_input
 
 import org.junit.Test
 

@@ -1,0 +1,41 @@
+{
+  "plugins": [
+    {
+      "plugin_id": "likert_scale",
+      "title": "일일 만족도 조사",
+      "questions": [
+        {
+          "text": "오늘 하루에 얼마나 만족하셨나요?",
+          "scale": ["1", "2", "3", "4", "5"]
+        },
+        {
+          "text": "현재 기분을 평가해주세요.",
+          "scale": ["0", "1", "2", "3", "4", "5", "6"]
+        },
+        {
+          "text": "업무 성취감을 느끼셨나요?",
+          "scale": ["1", "2", "3", "4", "5", "6", "7"]
+        }
+      ]
+    },
+    {
+      "plugin_id": "text_input",
+      "title": "사용자 의견 입력",
+      "placeholder": "여기에 입력하세요..."
+    },
+    {
+      "plugin_id": "likert_scale",
+      "title": "일일 만족도 조사",
+      "questions": [
+        {
+          "text": "오늘 하루에 얼마나 만족하셨나요?",
+          "scale": ["1-10", "11-30", "31-50", "51-70", "71-90"]
+        },
+        {
+          "text": "업무 성취감을 느끼셨나요?",
+          "scale": ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]
+        }
+      ]
+    }
+  ]
+}

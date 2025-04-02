@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 import com.hdil.rebloomlens.common.utils.Logger
 import com.hdil.rebloomlens.rebloomlens.ui.theme.RebloomlensTheme
 
@@ -37,11 +38,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PluginUI() {
-    Column {
-        Text("Loaded Plugins:")
-        PluginManager.loadPluginsUI()
+    val navController = rememberNavController()
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text(text = "Rebloomlens") })
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier.padding(paddingValues)
+        ) {
+//            Text("Loaded Plugins:")
+            PluginManager.PluginNavigation()
+        }
     }
 }
 
