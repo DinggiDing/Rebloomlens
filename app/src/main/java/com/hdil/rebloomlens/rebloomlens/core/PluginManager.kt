@@ -2,15 +2,31 @@ package com.hdil.rebloomlens.rebloomlens.core
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
+import com.hdil.rebloomlens.rebloomlens.ui.theme.onPrimaryLight
+import com.hdil.rebloomlens.rebloomlens.ui.theme.onSurfaceLight
+import com.hdil.rebloomlens.rebloomlens.ui.theme.onSurfaceVariantLight
+import com.hdil.rebloomlens.rebloomlens.ui.theme.primaryDark
+import com.hdil.rebloomlens.rebloomlens.ui.theme.primaryLight
+import com.hdil.rebloomlens.rebloomlens.ui.theme.surfaceVariantLight
 import org.json.JSONObject
 
 //ROLE  dynamically load plugin (init, register, load UI)
@@ -42,7 +58,7 @@ object PluginManager {
 
     private fun createPlugin(pluginId: String, config: JSONObject): Plugin? {
         return when (pluginId) {
-            "likert_scale" -> com.hdil.rebloomlens.likert_scale.LikertScalePlugin(pluginId, config)
+            "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, config)
             "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
             else -> null
         }
@@ -53,13 +69,26 @@ object PluginManager {
 //        plugins.values.forEach { plugin ->
 //            plugin.renderUI()
 //        }
-        Column {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
             plugins.forEach { (pluginId, plugin) ->
-                Button(onClick = {
+                Button(
+                    onClick = {
                     // Navigate to detailed view of the plugin
-//                    navigateToPluginDetail(pluginId)
-                    navController.navigate("pluginDetail/$pluginId")
-                }) {
+                        navController.navigate("pluginDetail/$pluginId")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = primaryLight,
+                        contentColor = onPrimaryLight,
+                        disabledContainerColor = surfaceVariantLight,
+                        disabledContentColor = onSurfaceVariantLight,
+                    ),
+                    contentPadding = PaddingValues(16.dp),
+                    modifier = Modifier.wrapContentSize()
+                        .padding(8.dp),
+                ) {
                     Text(text = "Open ${pluginId.replace("_", " ").capitalize()} Plugin")
                 }
             }

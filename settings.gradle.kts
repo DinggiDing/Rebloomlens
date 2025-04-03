@@ -24,5 +24,6 @@ include(":app")
 //include(":plugins:likert_scale")
 
 include(":common")
-include(":plugins:likert_scale")
 include(":manualInput_plugins:text_input")
+include(":manualInput_plugins:likert_scale")
+include(":sensor_plugins:health_connect")
