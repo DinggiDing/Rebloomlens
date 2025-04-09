@@ -5,7 +5,7 @@ import android.util.Log
 object Logger {
     private const val TAG = "Rebloomlens"
 
-    fun d(message: String) {
+    fun d(message: String, string: String) {
         Log.d(TAG, message)
     }
 

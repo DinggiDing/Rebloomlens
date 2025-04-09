@@ -42,6 +42,7 @@ android {
 dependencies {
     implementation(project(":manualInput_plugins:text_input"))
     implementation(project(":manualInput_plugins:likert_scale"))
+    implementation(project(":sensor_plugins:health_connect"))
     implementation(project(":common"))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)

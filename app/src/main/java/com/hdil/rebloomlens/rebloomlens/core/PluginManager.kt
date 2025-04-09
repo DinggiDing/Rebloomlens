@@ -60,6 +60,7 @@ object PluginManager {
         return when (pluginId) {
             "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, config)
             "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
+            "health_connect" -> com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectPlugin(pluginId, config)
             else -> null
         }
     }

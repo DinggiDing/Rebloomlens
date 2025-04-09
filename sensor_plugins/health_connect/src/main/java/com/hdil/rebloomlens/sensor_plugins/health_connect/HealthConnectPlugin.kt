@@ -1,12 +1,7 @@
 package com.hdil.rebloomlens.sensor_plugins.health_connect
 
-import android.app.Activity
-import android.app.Instrumentation.ActivityResult
 import android.content.Context
-import android.content.Intent
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -15,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,97 +20,60 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
-import androidx.health.connect.client.HealthConnectClient
-import androidx.health.connect.client.PermissionController
-import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.request.AggregateRequest
-import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.utils.Logger
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.time.ZonedDateTime
 
 class HealthConnectPlugin(
     override val pluginId: String,
     override val config: JSONObject
 ) : Plugin {
 
-    private lateinit var healthConnectClient: HealthConnectClient
+    private lateinit var healthConnectManager: HealthConnectManager
 
     override fun initialize(context: Context) {
-        healthConnectClient = HealthConnectClient.getOrCreate(context)
-        Logger.i("[$pluginId] Initialized with config: ${config.toString()}")
+        val recordTypes = config.optJSONArray("recordTypes") ?: return
+        healthConnectManager = HealthConnectManager(context, recordTypes)
     }
 
     @Composable
     override fun renderUI() {
-        val title = config.optString("title", "Health Data Sync")
-        val description = config.optString("description", "Sync and view health data")
+        val scope = rememberCoroutineScope()
+        var permissionGranted by remember { mutableStateOf(false) }
 
-        var stepsCount by remember { mutableStateOf("N/A") }
-        val coroutineScope = rememberCoroutineScope()
-
-        val permissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) {
-            Logger.i("[$pluginId] Permission granted or denied")
-        }
-
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(text = title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = description)
-
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        checkAndRequestPermissions(permissionLauncher)
-                        stepsCount = getStepCount()
-                    }
-                },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text("Start sync")
+        val requestPermissions = rememberLauncherForActivityResult(
+            contract = healthConnectManager.getPermissionContract()
+        ) { granted ->
+            scope.launch {
+                permissionGranted = granted.containsAll(healthConnectManager.permissions)
             }
-
-            Text(text = "Steps: $stepsCount", modifier = Modifier.padding(16.dp))
         }
-    }
 
-    private suspend fun checkAndRequestPermissions(permissionLauncher: ManagedActivityResultLauncher<Intent, ActivityResult>) {
-        val permissions = setOf(
-            PermissionController.PERMISSIONS_READ,
-            PermissionController.PERMISSIONS_WRITE
-        )
-        val granted = healthConnectClient.permissionController.getGrantedPermissions(permissions)
-
-        if (!permissions.all { it in granted }) {
-            val intent = healthConnectClient.permissionController.createRequestPermissions(permissions)
-            permissionLauncher.launch(intent)
+        LaunchedEffect(Unit) {
+            scope.launch {
+                healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+                    permissionGranted = true
+                }
+            }
         }
-    }
 
-    private suspend fun getStepCount(): String {
-        val endTime = ZonedDateTime.now().toInstant()
-        val startTime = endTime.minusSeconds(60*60*24)
-
-        return try {
-            val response = healthConnectClient.aggregate(
-                AggregateRequest(
-                    metrics = setOf(StepsRecord.COUNT_TOTAL),
-                    timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = if (permissionGranted) "✅ Health Connect 권한 허용됨" else "❌ Health Connect 권한 필요",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
             )
-
-            val steps = response[StepsRecord.COUNT_TOTAL]?.toString() ?: "0"
-            Logger.i("[$pluginId] Total steps: $steps")
-            steps
-        } catch (e: Exception) {
-            Logger.e("[$pluginId] Failed to read steps: ${e.message}")
-            "Error"
+            Spacer(modifier = Modifier.height(12.dp))
+            if (!permissionGranted) {
+                Button(onClick = {
+                    scope.launch {
+                        healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+                            permissionGranted = true
+                        }
+                    }
+                }) {
+                    Text("권한 요청 다시 시도")
+                }
+            }
         }
     }
-
 }

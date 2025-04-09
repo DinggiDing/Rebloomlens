@@ -36,6 +36,12 @@
           "scale": ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]
         }
       ]
+    },
+    {
+      "plugin_id": "health_connect",
+      "type": "health_connect",
+      "title": "헬스 데이터 수집",
+      "recordTypes": ["Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Body Fat", "Exercise", "Heart Rate", "Weight"]
     }
   ]
 }
