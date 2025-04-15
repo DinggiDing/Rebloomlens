@@ -44,6 +44,9 @@ dependencies {
     implementation(project(":manualInput_plugins:likert_scale"))
     implementation(project(":sensor_plugins:health_connect"))
     implementation(project(":common"))
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -61,4 +64,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // health connect
+    implementation(libs.healthconnect)
 }
+
+private fun DependencyHandlerScope.kapt(string: kotlin.String) {}

@@ -1,4 +1,4 @@
-package com.hdil.rebloomlens.sensor_plugins.health_connect.sleep
+package com.hdil.rebloomlens.common.model
 
 import androidx.health.connect.client.records.SleepSessionRecord
 import java.time.Duration

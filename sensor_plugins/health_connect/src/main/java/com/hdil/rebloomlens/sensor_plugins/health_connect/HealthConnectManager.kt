@@ -23,7 +23,9 @@ import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionData
+import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepDataSource
 import org.json.JSONArray
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -32,14 +34,20 @@ import kotlin.time.Instant
 
 // Utilized by https://github.com/android/health-samples
 
-// The minimum android level that can use Health Connect
-const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
 
 class HealthConnectManager(
     private val context: Context,
     private val recordTypes: JSONArray
 ) {
     private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+
+    // Data source
+    private val sleepSessionDataSource by lazy {
+        SleepSessionDataSource(healthConnectClient)
+    }
+    private val stepDataSource by lazy {
+        StepDataSource(healthConnectClient)
+    }
 
     var availability = mutableStateOf(SDK_UNAVAILABLE)
         private set
@@ -112,41 +120,13 @@ class HealthConnectManager(
         healthConnectClient.permissionController.revokeAllPermissions()
     }
 
+    /**
+     * Reads in existing [SleepSessionData]s.
+     */
+    suspend fun readSleepSessions() = sleepSessionDataSource.readSleepSessions()
 
-    suspend fun readSleepSessions(): List<SleepSessionData> {
-        val lastDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
-            .minusDays(1)
-            .withHour(12)
-        val firstDay = lastDay.minusDays(7)
-
-        val sessions = mutableListOf<SleepSessionData>()
-        val sleepSessionRequest = ReadRecordsRequest(
-            recordType = SleepSessionRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
-            ascendingOrder = false
-        )
-        val sleepSessions = healthConnectClient.readRecords(sleepSessionRequest)
-        sleepSessions.records.forEach { session ->
-            val sessionTimeFilter = TimeRangeFilter.between(session.startTime, session.endTime)
-            val durationAggregateRequest = AggregateRequest(
-                metrics = setOf(SleepSessionRecord.SLEEP_DURATION_TOTAL),
-                timeRangeFilter = sessionTimeFilter
-            )
-            val aggregateResponse = healthConnectClient.aggregate(durationAggregateRequest)
-            sessions.add(
-                SleepSessionData(
-                    uid = session.metadata.id,
-                    title = session.title,
-                    notes = session.notes,
-                    startTime = session.startTime,
-                    startZoneOffset = session.startZoneOffset,
-                    endTime = session.endTime,
-                    endZoneOffset = session.endZoneOffset,
-                    duration = aggregateResponse[SleepSessionRecord.SLEEP_DURATION_TOTAL],
-                    stages = session.stages
-                )
-            )
-        }
-        return sessions
-    }
+    /**
+     * Reads in existing [StepData]s.
+     */
+    suspend fun readStepData() = stepDataSource.readSteps()
 }

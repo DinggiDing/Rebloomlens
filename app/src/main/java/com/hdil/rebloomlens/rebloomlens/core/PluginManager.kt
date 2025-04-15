@@ -30,6 +30,10 @@ import com.hdil.rebloomlens.rebloomlens.ui.theme.surfaceVariantLight
 import org.json.JSONObject
 
 //ROLE  dynamically load plugin (init, register, load UI)
+/*
+ * PluginManager is responsible for loading and managing plugins in the application.
+ * It initializes plugins based on a configuration file and provides a UI for interacting with them.
+ */
 
 object PluginManager {
     private val plugins = mutableMapOf<String, Plugin>()
