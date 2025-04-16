@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.common.utils.DateTimeUtils
 import com.hdil.rebloomlens.common.utils.Logger
 import java.time.Duration
 import java.time.Instant
@@ -55,11 +56,11 @@ fun SleepSessionItem(session: SleepSessionData) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "시작: ${formatDateTime(session.startTime)}",
+                text = "시작: ${DateTimeUtils.formatDateTime(session.startTime)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "종료: ${formatDateTime(session.endTime)}",
+                text = "종료: ${DateTimeUtils.formatDateTime(session.endTime)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             session.duration?.let { duration ->
@@ -85,13 +86,6 @@ fun SleepSessionItem(session: SleepSessionData) {
             }
         }
     }
-}
-
-private fun formatDateTime(instant: Instant): String {
-    return DateTimeFormatter
-        .ofPattern("yyyy-MM-dd HH:mm")
-        .withZone(ZoneId.systemDefault())
-        .format(instant)
 }
 
 private fun formatDuration(duration: Duration): String {

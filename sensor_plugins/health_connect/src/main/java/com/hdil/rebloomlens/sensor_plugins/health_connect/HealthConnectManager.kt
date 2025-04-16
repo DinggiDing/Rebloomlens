@@ -24,8 +24,12 @@ import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodglucose.BloodGlucoseDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodpressure.BloodPressureDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat.BodyFatDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.weight.WeightDataSource
 import org.json.JSONArray
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
@@ -47,6 +51,18 @@ class HealthConnectManager(
     }
     private val stepDataSource by lazy {
         StepDataSource(healthConnectClient)
+    }
+    private val weightDataSource by lazy {
+        WeightDataSource(healthConnectClient)
+    }
+    private val bloodglucoseDataSource by lazy {
+        BloodGlucoseDataSource(healthConnectClient)
+    }
+    private val bloodPressureDataSource by lazy {
+        BloodPressureDataSource(healthConnectClient)
+    }
+    private val bodyFatDataSource by lazy {
+        BodyFatDataSource(healthConnectClient)
     }
 
     var availability = mutableStateOf(SDK_UNAVAILABLE)
@@ -129,4 +145,24 @@ class HealthConnectManager(
      * Reads in existing [StepData]s.
      */
     suspend fun readStepData() = stepDataSource.readSteps()
+
+    /**
+     * Reads in existing [WeightData]s.
+     */
+    suspend fun readWeightData() = weightDataSource.readWeight()
+
+    /**
+     * Reads in existing [BloodGlucoseData]s.
+     */
+    suspend fun readBloodGlucoseData() = bloodglucoseDataSource.readBloodGlucose()
+
+    /**
+     * Reads in existing [BloodPressureData]s.
+     */
+    suspend fun readBloodPressureData() = bloodPressureDataSource.readBloodPressure()
+
+    /**
+     * Reads in existing [BodyFatData]s.
+     */
+    suspend fun readBodyFatData() = bodyFatDataSource.readBodyFat()
 }

@@ -18,8 +18,15 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.lazy.items
+import com.hdil.rebloomlens.common.utils.DateTimeUtils
 import com.hdil.rebloomlens.common.utils.Logger
 
+// ROLE : This file is responsible for displaying a list of step data.
+/**
+ * Displays a list of step data.
+ *
+ * @param steps The list of step data to display.
+ */
 
 @Composable
 fun StepsList(steps: List<StepData>) {
@@ -48,7 +55,7 @@ fun StepDataItem(step: StepData) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "${formatDateTime(step.startTime)} 걸음 기록",
+                text = "${DateTimeUtils.formatDateTime(step.startTime)} 걸음 기록",
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -59,20 +66,13 @@ fun StepDataItem(step: StepData) {
             )
 
             Text(
-                text = "시작: ${formatDateTime(step.startTime)}",
+                text = "시작: ${DateTimeUtils.formatDateTime(step.startTime)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "종료: ${formatDateTime(step.endTime)}",
+                text = "종료: ${DateTimeUtils.formatDateTime(step.endTime)}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
     }
-}
-
-private fun formatDateTime(instant: Instant): String {
-    return DateTimeFormatter
-        .ofPattern("yyyy-MM-dd HH:mm")
-        .withZone(ZoneId.systemDefault())
-        .format(instant)
 }

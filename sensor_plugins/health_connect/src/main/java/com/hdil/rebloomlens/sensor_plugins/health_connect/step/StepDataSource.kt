@@ -8,6 +8,13 @@ import com.hdil.rebloomlens.common.model.StepData
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
+// ROLE : Called by HealthConnectManager to retrieve step data from Health Connect
+/**
+ * StepDataSource is responsible for reading step data from the Health Connect API.
+ *
+ * @param healthConnectClient The Health Connect client used to interact with the Health Connect API.
+ */
+
 class StepDataSource(
     private val healthConnectClient: HealthConnectClient
 ) {
@@ -27,6 +34,7 @@ class StepDataSource(
             val sessionTimeFilter = TimeRangeFilter.between(session.startTime, session.endTime)
             sessions.add(
                 StepData(
+                    uid = session.metadata.id,
                     startTime = session.startTime,
                     endTime = session.endTime,
                     stepCount = session.count
