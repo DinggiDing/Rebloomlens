@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hdil.rebloomlens.common.model.BloodGlucoseData
 import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.BodyFatData
+import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.model.WeightData
@@ -105,6 +106,7 @@ class HealthConnectPlugin(
                 viewModel.loadBloodGlucoseData()
                 viewModel.loadBloodPressureData()
                 viewModel.loadBodyFatData()
+                viewModel.loadHeartRateData()
             }
         }
 
@@ -144,7 +146,8 @@ class HealthConnectPlugin(
                             weights = uiState.weight,
                             bloodGlucose = uiState.bloodGlucose,
                             bloodPressure = uiState.bloodPressure,
-                            bodyFat = uiState.bodyFat
+                            bodyFat = uiState.bodyFat,
+                            heartRate = uiState.heartRate
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -176,7 +179,8 @@ fun HealthDataOverview(
     weights: List<WeightData>,
     bloodGlucose: List<BloodGlucoseData>,
     bloodPressure: List<BloodPressureData>,
-    bodyFat: List<BodyFatData>
+    bodyFat: List<BodyFatData>,
+    heartRate: List<HeartRateData>
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -250,6 +254,18 @@ fun HealthDataOverview(
                 } else "기록 없음",
                 description = if (bodyFat.isNotEmpty()) {
                     "최근: ${DateTimeUtils.formatDateTime(bodyFat.first().time)}"
+                } else "기록 없음"
+            )
+        }
+
+        item {
+            OverviewCard(
+                title = "심박수",
+                value = if (heartRate.isNotEmpty()) {
+                    "${heartRate.first().samples.first().beatsPerMinute} BPM"
+                } else "기록 없음",
+                description = if (heartRate.isNotEmpty()) {
+                    "최근: ${DateTimeUtils.formatDateTime(heartRate.first().startTime)}"
                 } else "기록 없음"
             )
         }

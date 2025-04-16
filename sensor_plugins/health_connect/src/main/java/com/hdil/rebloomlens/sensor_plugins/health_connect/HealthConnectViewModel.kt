@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hdil.rebloomlens.common.model.BloodGlucoseData
 import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.BodyFatData
+import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.model.WeightData
@@ -152,6 +153,28 @@ class HealthConnectViewModel(
             }
         }
     }
+
+    fun loadHeartRateData() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val heartRate = healthConnectManager.readHeartRateData()
+                _uiState.update {
+                    it.copy(
+                        heartRate = heartRate,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
 }
 
 data class HealthConnectUiState(
@@ -160,6 +183,7 @@ data class HealthConnectUiState(
     val weight: List<WeightData> = emptyList(),
     val bloodGlucose: List<BloodGlucoseData> = emptyList(),
     val bloodPressure: List<BloodPressureData> = emptyList(),
+    val heartRate: List<HeartRateData> = emptyList(),
     val bodyFat: List<BodyFatData> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null

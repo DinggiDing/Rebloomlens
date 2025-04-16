@@ -27,6 +27,7 @@ import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodglucose.BloodGlucoseDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodpressure.BloodPressureDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat.BodyFatDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate.HeartRateDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.weight.WeightDataSource
@@ -63,6 +64,9 @@ class HealthConnectManager(
     }
     private val bodyFatDataSource by lazy {
         BodyFatDataSource(healthConnectClient)
+    }
+    private val heartRateDataSource by lazy {
+        HeartRateDataSource(healthConnectClient)
     }
 
     var availability = mutableStateOf(SDK_UNAVAILABLE)
@@ -165,4 +169,9 @@ class HealthConnectManager(
      * Reads in existing [BodyFatData]s.
      */
     suspend fun readBodyFatData() = bodyFatDataSource.readBodyFat()
+
+    /**
+     * Reads in existing [HeartRateData]s.
+     */
+    suspend fun readHeartRateData() = heartRateDataSource.readHeartRate()
 }
