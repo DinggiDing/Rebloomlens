@@ -2,6 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="21">
+      <module name="Rebloomlens.build-logic.convention.main.main" target="11" />
+      <module name="Rebloomlens.build-logic.convention.main.test" target="11" />
       <module name="Rebloomlens.plugin.likert_scale" target="21" />
     </bytecodeTargetLevel>
   </component>
