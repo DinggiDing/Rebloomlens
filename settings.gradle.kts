@@ -1,7 +1,5 @@
 pluginManagement {
-    includeBuild("build-logic") {
-        name = "build-logic-included"
-    }
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -17,7 +15,13 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
     }
 }
@@ -29,4 +33,3 @@ include(":manualInput_plugins:text_input")
 include(":manualInput_plugins:likert_scale")
 include(":sensor_plugins:health_connect")
 include(":sensor_plugins:samsunghealth_data")
-include(":build-logic:convention")
