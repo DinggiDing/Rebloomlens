@@ -15,7 +15,7 @@ storage = "1.5.0"
 runtimeAndroid = "1.7.8"
 navigation_compose = "2.8.9"
 healthconnect = "1.1.0-beta01"
-
+gson = "2.13.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,8 +37,12 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-storage = { group = "androidx.test.services", name = "storage", version.ref = "storage" }
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation_compose" }
+
+# Health Connect
 healthconnect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthconnect" }
 
+# Samsung health sdk
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
