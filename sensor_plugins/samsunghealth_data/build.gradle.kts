@@ -37,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":common"))
+
     implementation (files("libs/samsung-health-data-api-1.0.0-b2.aar"))
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
