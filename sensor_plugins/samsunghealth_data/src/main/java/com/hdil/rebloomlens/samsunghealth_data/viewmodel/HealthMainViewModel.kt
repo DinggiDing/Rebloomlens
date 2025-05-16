@@ -10,7 +10,9 @@ import com.hdil.rebloomlens.common.utils.Logger
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
 import com.hdil.rebloomlens.samsunghealth_data.utility.getExceptionHandler
 import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.permission.AccessType
 import com.samsung.android.sdk.health.data.permission.Permission
+import com.samsung.android.sdk.health.data.request.DataTypes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,5 +66,19 @@ class HealthMainViewModel(
             }
 
         }
+    }
+
+    // Permissions for all ddta types accessed in this application
+    // Steps, Sleep, Heart Rate, Blood Pressure, Weight(BodyComposition), SMM(BodyComposition), BF(BodyComposition), ECG, Exercise.
+
+    fun connectToSamsungHealth(context: Context) {
+        val permSet = setOf(
+            Permission.of(DataTypes.STEPS, AccessType.READ),
+            Permission.of(DataTypes.SLEEP, AccessType.READ),
+            Permission.of(DataTypes.HEART_RATE, AccessType.READ),
+            Permission.of(DataTypes.BLOOD_PRESSURE, AccessType.READ),
+
+
+            )
     }
 }

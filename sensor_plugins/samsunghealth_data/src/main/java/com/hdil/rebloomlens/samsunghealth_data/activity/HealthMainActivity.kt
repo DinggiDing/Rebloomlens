@@ -32,6 +32,7 @@ import com.samsung.android.sdk.health.data.request.DataTypes
 import kotlinx.coroutines.launch
 import androidx.compose.material3.*
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
+import com.hdil.rebloomlens.samsunghealth_data.viewmodel.HealthMainViewModel
 
 class HealthMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
