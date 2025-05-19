@@ -2,7 +2,6 @@ package com.hdil.rebloomlens.rebloomlens.core
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +13,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -22,9 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.rebloomlens.ui.theme.onPrimaryLight
-import com.hdil.rebloomlens.rebloomlens.ui.theme.onSurfaceLight
 import com.hdil.rebloomlens.rebloomlens.ui.theme.onSurfaceVariantLight
-import com.hdil.rebloomlens.rebloomlens.ui.theme.primaryDark
 import com.hdil.rebloomlens.rebloomlens.ui.theme.primaryLight
 import com.hdil.rebloomlens.rebloomlens.ui.theme.surfaceVariantLight
 import org.json.JSONObject
@@ -65,6 +61,7 @@ object PluginManager {
             "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, config)
             "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
             "health_connect" -> com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectPlugin(pluginId, config)
+            "samsung_health" -> com.hdil.rebloomlens.samsunghealth_data.SamsungHealthPlugin(pluginId, config)
             else -> null
         }
     }

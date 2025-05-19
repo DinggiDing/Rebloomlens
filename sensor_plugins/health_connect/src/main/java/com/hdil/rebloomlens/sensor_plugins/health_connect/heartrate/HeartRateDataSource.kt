@@ -2,14 +2,13 @@ package com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.HeartRateRecord
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.HeartRateData
+import com.hdil.rebloomlens.common.model.HeartRateSample
 import com.hdil.rebloomlens.common.utils.Logger
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
-import kotlin.text.compareTo
 
 class HeartRateDataSource(
     private val healthConnectClient: HealthConnectClient,
@@ -27,17 +26,22 @@ class HeartRateDataSource(
 
         val heartRate = healthConnectClient.readRecords(heartRateRequest)
         heartRate.records.forEach { session ->
+            val convertedSamples = session.samples.map {
+                HeartRateSample(
+                    time = it.time,
+                    beatsPerMinute = it.beatsPerMinute.toLong()
+                )
+            }
             sessions.add(
                 HeartRateData(
                     uid = session.metadata.id,
                     startTime = session.startTime,
                     endTime = session.endTime,
-                    samples = session.samples
+                    samples = convertedSamples
                 )
             )
             Logger.e("HeartRateDataSource: start: ${session.startTime} ~ end: ${session.endTime}")
-            Logger.e("HeartRateDataSource: readHeartRate: ${session.samples} sessions")
-
+            Logger.e("HeartRateDataSource: readHeartRate: ${convertedSamples.size} samples")
         }
 
         return sessions

@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":manualInput_plugins:text_input"))
     implementation(project(":manualInput_plugins:likert_scale"))
     implementation(project(":sensor_plugins:health_connect"))
+    implementation(project(":sensor_plugins:samsunghealth_data"))
     implementation(project(":common"))
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("com.google.dagger:hilt-android:2.48")
