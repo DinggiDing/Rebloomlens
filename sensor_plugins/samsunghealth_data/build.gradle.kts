@@ -1,11 +1,12 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
 }
 
 android {
-    namespace = "com.hdil.rebloomlens.samsunghealth_data"
+    namespace = "com.hdil.rebloomlens.sensor_plugins.samsunghealth_data"
     compileSdk = 35
 
     defaultConfig {
@@ -33,6 +34,9 @@ android {
     }
     sourceSets {
         sourceSets["main"].jniLibs.srcDirs(listOf("libs"))
+    }
+    buildFeatures {
+        compose = true
     }
 }
 
@@ -63,8 +67,4 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     implementation(libs.gson)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

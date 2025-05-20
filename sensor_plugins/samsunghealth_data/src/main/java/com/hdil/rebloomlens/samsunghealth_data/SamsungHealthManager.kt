@@ -12,9 +12,11 @@ import com.samsung.android.sdk.health.data.permission.Permission
 import com.samsung.android.sdk.health.data.request.DataTypes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 
 class SamsungHealthManager(
     private val healthDataStore: HealthDataStore,
+    private val recordTypes: JSONArray
 ) {
     // 각 데이터 타입별 데이터 소스
     private val heartRateDataSource = HeartRateDataSource(healthDataStore)

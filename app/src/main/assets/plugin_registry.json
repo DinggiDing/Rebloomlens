@@ -42,6 +42,12 @@
       "type": "health_connect",
       "title": "헬스 데이터 수집",
       "recordTypes": ["Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Body Fat", "Exercise", "Heart Rate", "Weight"]
+    },
+    {
+      "plugin_id": "samsung_health",
+      "type": "samsung_health",
+      "title": "헬스 데이터 수집",
+      "recordTypes": ["Heart Rate"]
     }
   ]
 }

@@ -30,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +43,7 @@ import com.hdil.rebloomlens.common.utils.DateTimeUtils
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
 import com.hdil.rebloomlens.samsunghealth_data.viewmodel.SamsungHealthMainViewModel
 import com.hdil.rebloomlens.samsunghealth_data.viewmodel.SamsungHealthViewModelFactory
+import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.helper.SdkVersion
 import com.samsung.android.sdk.health.data.permission.AccessType
@@ -58,11 +58,16 @@ class SamsungHealthPlugin(
 ) : Plugin {
 
     private lateinit var healthDataStore: HealthDataStore
+    private lateinit var samsungHealthManager: SamsungHealthManager
     private lateinit var viewModelFactory: SamsungHealthViewModelFactory
 
     override fun initialize(context: Context) {
+        val recordTypes = config.optJSONArray("recordTypes") ?: return
+
         // Samsung Health SDK 초기화
-        viewModelFactory = SamsungHealthViewModelFactory(context)
+        healthDataStore = HealthDataService.getStore(context)
+        samsungHealthManager = SamsungHealthManager(healthDataStore, recordTypes)
+        viewModelFactory = SamsungHealthViewModelFactory(samsungHealthManager)
     }
 
     @Composable
@@ -70,36 +75,36 @@ class SamsungHealthPlugin(
         val viewModel: SamsungHealthMainViewModel = viewModel(factory = viewModelFactory)
         val uiState by viewModel.uiState.collectAsState()
         val context = androidx.compose.ui.platform.LocalContext.current
-        val scope = rememberCoroutineScope()
 
         var permissionState by remember { mutableStateOf(false) }
 
         // 권한 응답 처리
         LaunchedEffect(viewModel.permissionResponse) {
-            viewModel.permissionResponse.collect { (code, dataType) ->
+            viewModel.permissionResponse.collect { (code, activityId) ->
                 when {
                     code == AppConstants.SUCCESS -> {
                         permissionState = true
-                        // 권한이 승인되면 데이터 로드
-//                        when (dataType) {
-//                            DataTypes.HEART_RATE -> viewModel.loadHeartRateData()
-//                        }
+                        // 심박수 데이터 로드
+                        viewModel.loadHeartRateData()
                     }
                     code != AppConstants.WAITING -> {
-                        androidx.compose.ui.platform.LocalContext.current.apply {
-                            android.widget.Toast.makeText(this, code, android.widget.Toast.LENGTH_SHORT).show()
-                        }
+                        android.widget.Toast.makeText(context, code, android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
                 viewModel.resetPermissionResponse()
             }
         }
 
-        // 데이터 로드 자동화
-        LaunchedEffect(permissionState) {
-            if (permissionState) {
-                viewModel.loadHeartRateData()
-            }
+        // 초기 데이터 로드 시도
+        LaunchedEffect(Unit) {
+            val permSet = mutableSetOf(
+                Permission.of(DataTypes.HEART_RATE, AccessType.READ),
+                Permission.of(DataTypes.EXERCISE, AccessType.READ),
+                Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ)
+            )
+
+            // 이미 권한이 있는지 확인하고 자동으로 데이터 로드
+            viewModel.checkForPermission(context, permSet, AppConstants.HEART_RATE_ACTIVITY)
         }
 
         Column(
@@ -153,7 +158,8 @@ class SamsungHealthPlugin(
                                     Permission.of(DataTypes.HEART_RATE, AccessType.READ),
                                     Permission.of(DataTypes.EXERCISE, AccessType.READ),
                                     Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ)
-                                )
+                                ),
+                                AppConstants.HEART_RATE_ACTIVITY
                             )
                         }
                     )
@@ -193,7 +199,7 @@ fun HealthDataOverview(
         item {
             OverviewCard(
                 title = "심박수",
-                value = if (heartRate.isNotEmpty()) {
+                value = if (heartRate.isNotEmpty() && heartRate.first().samples.isNotEmpty()) {
                     "${heartRate.first().samples.first().beatsPerMinute} BPM"
                 } else "기록 없음",
                 description = if (heartRate.isNotEmpty()) {
