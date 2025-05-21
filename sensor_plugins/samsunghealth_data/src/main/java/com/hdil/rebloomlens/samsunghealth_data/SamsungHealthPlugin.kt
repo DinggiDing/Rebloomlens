@@ -30,9 +30,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,11 +48,123 @@ import com.hdil.rebloomlens.samsunghealth_data.viewmodel.SamsungHealthViewModelF
 import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.helper.SdkVersion
-import com.samsung.android.sdk.health.data.permission.AccessType
-import com.samsung.android.sdk.health.data.permission.Permission
-import com.samsung.android.sdk.health.data.request.DataTypes
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+
+//class SamsungHealthPlugin(
+//    override val pluginId: String,
+//    override val config: JSONObject
+//) : Plugin {
+//
+//    private lateinit var healthDataStore: HealthDataStore
+//    private lateinit var samsungHealthManager: SamsungHealthManager
+//    private lateinit var viewModelFactory: SamsungHealthViewModelFactory
+//
+//    override fun initialize(context: Context) {
+//        val recordTypes = config.optJSONArray("recordTypes") ?: return
+//
+//        // Samsung Health SDK 초기화
+//        healthDataStore = HealthDataService.getStore(context)
+//        samsungHealthManager = SamsungHealthManager(healthDataStore, recordTypes)
+//        viewModelFactory = SamsungHealthViewModelFactory(samsungHealthManager)
+//    }
+//
+//    @Composable
+//    override fun renderUI() {
+//        val scope = rememberCoroutineScope()
+//        val context = LocalContext.current
+//        var permissionGranted by remember { mutableStateOf(false) }
+//
+//        val viewModel: SamsungHealthMainViewModel = viewModel(factory = viewModelFactory)
+//        val uiState by viewModel.uiState.collectAsState()
+//
+//        // 초기 권한 확인 및 처리
+//        LaunchedEffect(Unit) {
+//            scope.launch {
+//                val result = samsungHealthManager.checkPermissionsAndRun(
+//                    context,
+//                    0 // 초기 액티비티 ID
+//                ) {
+//                    permissionGranted = true
+//                }
+//                permissionGranted = result.first == "SUCCESS"
+//            }
+//        }
+//
+//        // 권한이 부여되면 데이터 로드
+//        LaunchedEffect(permissionGranted) {
+//            if (permissionGranted) {
+//                viewModel.loadHeartRateData()
+//                // 다른 데이터 로드 메서드 추가 가능
+//                // viewModel.loadStepData()
+//                // viewModel.loadSleepData()
+//                // 등등...
+//            }
+//        }
+//
+//
+//        Column(
+//            modifier = Modifier.padding(16.dp)
+//        ) {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "Samsung Health",
+//                    style = MaterialTheme.typography.headlineMedium,
+//                    fontWeight = FontWeight.Bold
+//                )
+//
+//                IconButton(onClick = { viewModel.connectToSamsungHealth(context) }) {
+//                    Icon(
+//                        imageVector = Icons.Default.Settings,
+//                        contentDescription = "권한 요청"
+//                    )
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            Text(
+//                text = "SDK 버전: ${SdkVersion.getVersionName()}",
+//                style = MaterialTheme.typography.bodyMedium
+//            )
+//
+//            Spacer(modifier = Modifier.height(20.dp))
+//
+//            when {
+//                uiState.isLoading -> LoadingScreen()
+//                uiState.error != null -> ErrorScreen(message = uiState.error)
+//                else -> {
+//                    // 개요 섹션
+//                    Text(
+//                        text = "개요",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        modifier = Modifier.padding(bottom = 16.dp)
+//                    )
+//
+//                    HealthDataOverview(
+//                        heartRate = uiState.heartRate,
+//                        onHeartRateClick = {
+//                            viewModel.checkForPermission(
+//                                context,
+//                                mutableSetOf(
+//                                    Permission.of(DataTypes.HEART_RATE, AccessType.READ),
+//                                    Permission.of(DataTypes.EXERCISE, AccessType.READ),
+//                                    Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ)
+//                                ),
+//                                AppConstants.HEART_RATE_ACTIVITY
+//                            )
+//                        }
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 class SamsungHealthPlugin(
     override val pluginId: String,
@@ -72,39 +186,35 @@ class SamsungHealthPlugin(
 
     @Composable
     override fun renderUI() {
+        val scope = rememberCoroutineScope()
+        val context = LocalContext.current
+        var permissionGranted by remember { mutableStateOf(false) }
+
         val viewModel: SamsungHealthMainViewModel = viewModel(factory = viewModelFactory)
         val uiState by viewModel.uiState.collectAsState()
-        val context = androidx.compose.ui.platform.LocalContext.current
 
-        var permissionState by remember { mutableStateOf(false) }
-
-        // 권한 응답 처리
-        LaunchedEffect(viewModel.permissionResponse) {
-            viewModel.permissionResponse.collect { (code, activityId) ->
-                when {
-                    code == AppConstants.SUCCESS -> {
-                        permissionState = true
-                        // 심박수 데이터 로드
-                        viewModel.loadHeartRateData()
-                    }
-                    code != AppConstants.WAITING -> {
-                        android.widget.Toast.makeText(context, code, android.widget.Toast.LENGTH_SHORT).show()
-                    }
+        // 초기 권한 확인 및 처리
+        LaunchedEffect(Unit) {
+            scope.launch {
+                val result = samsungHealthManager.checkPermissionsAndRun(
+                    context,
+                    0 // 초기 액티비티 ID
+                ) {
+                    permissionGranted = true
                 }
-                viewModel.resetPermissionResponse()
+                permissionGranted = result.first == AppConstants.SUCCESS
             }
         }
 
-        // 초기 데이터 로드 시도
-        LaunchedEffect(Unit) {
-            val permSet = mutableSetOf(
-                Permission.of(DataTypes.HEART_RATE, AccessType.READ),
-                Permission.of(DataTypes.EXERCISE, AccessType.READ),
-                Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ)
-            )
-
-            // 이미 권한이 있는지 확인하고 자동으로 데이터 로드
-            viewModel.checkForPermission(context, permSet, AppConstants.HEART_RATE_ACTIVITY)
+        // 권한이 부여되면 데이터 로드
+        LaunchedEffect(permissionGranted) {
+            if (permissionGranted) {
+                viewModel.loadHeartRateData()
+                // 다른 데이터 로드 메서드 추가 가능
+                // viewModel.loadStepData()
+                // viewModel.loadSleepData()
+                // 등등...
+            }
         }
 
         Column(
@@ -121,7 +231,11 @@ class SamsungHealthPlugin(
                     fontWeight = FontWeight.Bold
                 )
 
-                IconButton(onClick = { viewModel.connectToSamsungHealth(context) }) {
+                IconButton(onClick = {
+                    scope.launch {
+                        viewModel.connectToSamsungHealth(context)
+                    }
+                }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "권한 요청"
@@ -141,6 +255,12 @@ class SamsungHealthPlugin(
             when {
                 uiState.isLoading -> LoadingScreen()
                 uiState.error != null -> ErrorScreen(message = uiState.error)
+                !permissionGranted -> {
+                    Text(
+                        text = "Samsung Health 권한을 허용해주세요",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
                 else -> {
                     // 개요 섹션
                     Text(
@@ -152,15 +272,12 @@ class SamsungHealthPlugin(
                     HealthDataOverview(
                         heartRate = uiState.heartRate,
                         onHeartRateClick = {
-                            viewModel.checkForPermission(
+                            viewModel.runWithPermissions(
                                 context,
-                                mutableSetOf(
-                                    Permission.of(DataTypes.HEART_RATE, AccessType.READ),
-                                    Permission.of(DataTypes.EXERCISE, AccessType.READ),
-                                    Permission.of(DataTypes.BODY_COMPOSITION, AccessType.READ)
-                                ),
                                 AppConstants.HEART_RATE_ACTIVITY
-                            )
+                            ) {
+                                viewModel.loadHeartRateData()
+                            }
                         }
                     )
                 }
