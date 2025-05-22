@@ -2,7 +2,6 @@ package com.hdil.rebloomlens.samsunghealth_data.heartrate
 
 import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.HeartRateSample
-import com.hdil.rebloomlens.common.utils.Logger
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
@@ -15,17 +14,10 @@ class HeartRateDataSource(
     private val healthDataStore: HealthDataStore,
 ) {
     suspend fun readHeartRate(): List<HeartRateData> {
-        Logger.e("HeartRateDataSource")
-
         val lastDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
         val firstDay = lastDay.minusDays(30)
 
         val sessions = mutableListOf<HeartRateData>()
-//        val heartRateRequest = ReadRecordsRequest(
-//            recordType = HeartRateRecord::class,
-//            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
-//            ascendingOrder = false
-//        )
 
         val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), lastDay.toLocalDateTime())
         val readRequest = DataTypes.HEART_RATE.readDataRequestBuilder

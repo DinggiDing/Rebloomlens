@@ -68,9 +68,7 @@ object PluginManager {
 
     @Composable
     fun loadPluginsUI(navController: NavController) {
-//        plugins.values.forEach { plugin ->
-//            plugin.renderUI()
-//        }
+
         Column(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
             verticalArrangement = Arrangement.Center

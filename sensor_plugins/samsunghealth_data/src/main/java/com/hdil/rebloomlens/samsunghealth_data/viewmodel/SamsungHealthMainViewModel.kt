@@ -10,64 +10,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ROLE : Samsung Health DataManagement and Business Logic Handler
+ *
+ * Manages UI state for Samsung Health data,
+ * loads data through SamsungHealthManager, coordinates permission handling logic and data loading states.
+ * Acts as a mediator between UI layer and data layer.
+ */
+
 class SamsungHealthMainViewModel(
     private val samsungHealthManager: SamsungHealthManager
 ) : ViewModel() {
 
-//    private val _permissionResponse = MutableStateFlow(Pair(AppConstants.WAITING, -1))
-//    private val _exceptionResponse: MutableLiveData<String> = MutableLiveData<String>()
-//    private val exceptionHandler = getExceptionHandler(exceptionResponse = _exceptionResponse)
-//    val permissionResponse: StateFlow<Pair<String, Int>> = _permissionResponse
-//    val exceptionResponse: LiveData<String> = _exceptionResponse
-//
-//    private val _uiState = MutableStateFlow(SamsungHealthUiState(isLoading = true))
-//    val uiState = _uiState.asStateFlow()
-//
-//    fun initializeHealthConnection(context: Context) {
-//        viewModelScope.launch(exceptionHandler) {
-//            samsungHealthManager.initSamsungHealthConnection(context)
-//        }
-//    }
-//
-//    fun checkForPermission(
-//        context: Context,
-//        permSet: MutableSet<Permission>,
-//        activityId: Int
-//    ) {
-//        viewModelScope.launch(exceptionHandler) {
-//            val result = samsungHealthManager.checkAndRequestPermissions(context, permSet, activityId)
-//            _permissionResponse.emit(result)
-//        }
-//    }
-//
-//    fun resetPermissionResponse() {
-//        viewModelScope.launch {
-//            _permissionResponse.emit(Pair(AppConstants.WAITING, -1))
-//        }
-//    }
-//
-//    // 데이터 로드 함수들
-//    fun loadHeartRateData() {
-//        viewModelScope.launch {
-//            _uiState.update { it.copy(isLoading = true) }
-//            try {
-//                val heartRate = samsungHealthManager.readHeartRateData()
-//                _uiState.update {
-//                    it.copy(
-//                        heartRate = heartRate,
-//                        isLoading = false
-//                    )
-//                }
-//            } catch (e: Exception) {
-//                _uiState.update {
-//                    it.copy(
-//                        error = e.message,
-//                        isLoading = false
-//                    )
-//                }
-//            }
-//        }
-//    }
     private val _uiState = MutableStateFlow(SamsungHealthUiState(isLoading = false))
     val uiState = _uiState.asStateFlow()
 
@@ -86,22 +40,6 @@ class SamsungHealthMainViewModel(
                 _uiState.update {
                     it.copy(
                         error = e.message,
-                        isLoading = false
-                    )
-                }
-            }
-        }
-    }
-
-    // 삼성 헬스 초기화를 위한 함수
-    fun initializeHealthConnection(context: Context) {
-        viewModelScope.launch {
-            try {
-                samsungHealthManager.initSamsungHealthConnection(context)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        error = "권한 요청 중 오류: ${e.message}",
                         isLoading = false
                     )
                 }
