@@ -2,10 +2,20 @@ package com.hdil.rebloomlens.sensor_plugins.health_connect.sleep
 
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_AWAKE
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_AWAKE_IN_BED
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_DEEP
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_LIGHT
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_OUT_OF_BED
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_REM
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_SLEEPING
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_UNKNOWN
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.common.model.SleepStage
+import com.hdil.rebloomlens.common.model.SleepStageType
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -48,10 +58,30 @@ class SleepSessionDataSource(
                     endTime = session.endTime,
                     endZoneOffset = session.endZoneOffset,
                     duration = aggregateResponse[SleepSessionRecord.SLEEP_DURATION_TOTAL],
-                    stages = session.stages
+                    stages = session.stages.map { stage ->
+                        SleepStage(
+                            startTime = stage.startTime,
+                            endTime = stage.endTime,
+                            stage = mapSleepStageType(stage.stage)
+                        )
+                    }
                 )
             )
         }
         return sessions
+    }
+
+    private fun mapSleepStageType(stage: Int): SleepStageType {
+        return when (stage) {
+            STAGE_TYPE_AWAKE -> SleepStageType.UNKNOWN
+            STAGE_TYPE_AWAKE_IN_BED -> SleepStageType.UNKNOWN
+            STAGE_TYPE_DEEP -> SleepStageType.UNKNOWN
+            STAGE_TYPE_LIGHT -> SleepStageType.UNKNOWN
+            STAGE_TYPE_OUT_OF_BED -> SleepStageType.UNKNOWN
+            STAGE_TYPE_REM -> SleepStageType.UNKNOWN
+            STAGE_TYPE_SLEEPING -> SleepStageType.UNKNOWN
+            STAGE_TYPE_UNKNOWN -> SleepStageType.UNKNOWN
+            else -> SleepStageType.UNKNOWN
+        }
     }
 }

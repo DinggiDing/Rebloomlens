@@ -1,18 +1,36 @@
 package com.hdil.rebloomlens.common.model
 
-import androidx.health.connect.client.records.SleepSessionRecord
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
 
 data class SleepSessionData(
     val uid: String,
-    val title: String?,
-    val notes: String?,
+    val title: String? = null,
+    val notes: String? = null,
     val startTime: Instant,
-    val startZoneOffset: ZoneOffset?,
+    val startZoneOffset: ZoneOffset? = null,
     val endTime: Instant,
-    val endZoneOffset: ZoneOffset?,
+    val endZoneOffset: ZoneOffset? = null,
     val duration: Duration?,
-    val stages: List<SleepSessionRecord.Stage> = listOf()
+    val stages: List<SleepStage> = listOf(),
+    val score: Int? = null,
 )
+
+
+data class SleepStage(
+    val startTime: Instant,
+    val endTime: Instant,
+    val stage: SleepStageType
+)
+
+enum class SleepStageType {
+    UNKNOWN,
+    AWAKE,
+    AWAKE_IN_BED,
+    OUT_OF_BED,
+    LIGHT,
+    DEEP,
+    REM,
+    SLEEPING
+}

@@ -2,11 +2,14 @@ package com.hdil.rebloomlens.samsunghealth_data.sleep
 
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.samsung.android.sdk.health.data.HealthDataStore
+import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.Ordering
+import java.time.Duration
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import kotlin.time.toKotlinDuration
 
 class SleepDataSource(
     private val healthDataStore: HealthDataStore
@@ -28,16 +31,17 @@ class SleepDataSource(
             // TODO: Handle null values for startTime and endTime
             val startTime = session.startTime
             val endTime = session.endTime!!
-            val sleepType = session.getValue(DataTypes.SLEEP_TYPE)?.toString() ?: return@forEach
-            val sleepDuration = session.getValue(DataTypes.SLEEP_DURATION)?.toLong() ?: return@forEach
+            val duration : Duration = session.getValue(DataType.SleepType.DURATION) ?: return@forEach
+            val stages = session.getValue(DataType.SleepType.SESSIONS.SleepStages) ?: listOf()
 
             sessions.add(
                 SleepSessionData(
                     uid = session.uid,
                     startTime = startTime,
                     endTime = endTime,
-                    sleepType = sleepType,
-                    sleepDuration = sleepDuration
+                    duration = duration,
+                    stages = stages,
+                    score = session.getValue(DataType.SleepType.SLEEP_SCORE),
                 )
             )
         }
