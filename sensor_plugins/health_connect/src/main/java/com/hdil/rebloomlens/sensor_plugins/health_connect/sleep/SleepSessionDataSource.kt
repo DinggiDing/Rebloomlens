@@ -73,13 +73,13 @@ class SleepSessionDataSource(
 
     private fun mapSleepStageType(stage: Int): SleepStageType {
         return when (stage) {
-            STAGE_TYPE_AWAKE -> SleepStageType.UNKNOWN
-            STAGE_TYPE_AWAKE_IN_BED -> SleepStageType.UNKNOWN
-            STAGE_TYPE_DEEP -> SleepStageType.UNKNOWN
-            STAGE_TYPE_LIGHT -> SleepStageType.UNKNOWN
-            STAGE_TYPE_OUT_OF_BED -> SleepStageType.UNKNOWN
-            STAGE_TYPE_REM -> SleepStageType.UNKNOWN
-            STAGE_TYPE_SLEEPING -> SleepStageType.UNKNOWN
+            STAGE_TYPE_AWAKE -> SleepStageType.AWAKE
+            STAGE_TYPE_AWAKE_IN_BED -> SleepStageType.AWAKE_IN_BED
+            STAGE_TYPE_DEEP -> SleepStageType.DEEP
+            STAGE_TYPE_LIGHT -> SleepStageType.LIGHT
+            STAGE_TYPE_OUT_OF_BED -> SleepStageType.OUT_OF_BED
+            STAGE_TYPE_REM -> SleepStageType.REM
+            STAGE_TYPE_SLEEPING -> SleepStageType.SLEEPING
             STAGE_TYPE_UNKNOWN -> SleepStageType.UNKNOWN
             else -> SleepStageType.UNKNOWN
         }

@@ -1,6 +1,7 @@
 package com.hdil.rebloomlens.samsunghealth_data.sleep
 
 import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.common.model.SleepStage
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
@@ -32,7 +33,10 @@ class SleepDataSource(
             val startTime = session.startTime
             val endTime = session.endTime!!
             val duration : Duration = session.getValue(DataType.SleepType.DURATION) ?: return@forEach
-            val stages = session.getValue(DataType.SleepType.SESSIONS.SleepStages) ?: listOf()
+
+            val stagesList = mutableListOf<SleepStage>()
+            val stagesData = session.getValue(DataType.SleepType.StageType) as? List<*>
+            val stages = session.getValue(DataType.SleepType.StageType.) ?: listOf()
 
             sessions.add(
                 SleepSessionData(
