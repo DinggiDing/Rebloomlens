@@ -1,15 +1,14 @@
 package com.hdil.rebloomlens.common.model
 
-import androidx.health.connect.client.units.Pressure
 import java.time.Instant
 
 data class BloodPressureData(
     val uid: String,
     val time: Instant,
-    val systolic: Pressure,
-    val diastolic: Pressure,
-    val bodyPosition: Int,
-    val measurementLocation: Int
+    val systolic: Double,
+    val diastolic: Double,
+    val bodyPosition: Int? = null,
+    val measurementLocation: Int? = null
 )
 
 /*

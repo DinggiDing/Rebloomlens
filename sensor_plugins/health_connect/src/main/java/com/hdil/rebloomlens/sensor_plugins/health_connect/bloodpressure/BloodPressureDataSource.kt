@@ -35,8 +35,8 @@ class BloodPressureDataSource(
                 BloodPressureData(
                     uid = session.metadata.id,
                     time = session.time,
-                    systolic = session.systolic,
-                    diastolic = session.diastolic,
+                    systolic = session.systolic.inMillimetersOfMercury,
+                    diastolic = session.diastolic.inMillimetersOfMercury,
                     bodyPosition = session.bodyPosition,
                     measurementLocation = session.measurementLocation
                 )

@@ -3,7 +3,11 @@ package com.hdil.rebloomlens.samsunghealth_data.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.HeartRateData
+import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.common.model.StepData
+import com.hdil.rebloomlens.common.utils.Logger
 import com.hdil.rebloomlens.samsunghealth_data.SamsungHealthManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +30,7 @@ class SamsungHealthMainViewModel(
     val uiState = _uiState.asStateFlow()
 
     fun loadHeartRateData() {
+        Logger.e("loadHeartRateData called")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -33,6 +38,75 @@ class SamsungHealthMainViewModel(
                 _uiState.update {
                     it.copy(
                         heartRate = heartRate,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadSleepData() {
+        viewModelScope.launch {
+            Logger.e("loadSleepData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val sleep = samsungHealthManager.readSleepData()
+                _uiState.update {
+                    it.copy(
+                        sleep = sleep,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadStepData() {
+        viewModelScope.launch {
+            Logger.e("loadStepData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val step = samsungHealthManager.readStepData()
+                _uiState.update {
+                    it.copy(
+                        step = step,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadBloodPressureData() {
+        viewModelScope.launch {
+            Logger.e("loadBloodPressureData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val bloodPressure = samsungHealthManager.readBloodPressureData()
+                _uiState.update {
+                    it.copy(
+                        bloodPressure = bloodPressure,
                         isLoading = false
                     )
                 }
@@ -76,6 +150,9 @@ class SamsungHealthMainViewModel(
 
 data class SamsungHealthUiState(
     val heartRate: List<HeartRateData> = emptyList(),
+    val sleep: List<SleepSessionData> = emptyList(),
+    val step: List<StepData> = emptyList(),
+    val bloodPressure: List<BloodPressureData> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )

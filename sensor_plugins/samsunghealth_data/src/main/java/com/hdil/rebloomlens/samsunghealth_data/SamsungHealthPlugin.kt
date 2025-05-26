@@ -39,7 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.HeartRateData
+import com.hdil.rebloomlens.common.model.SleepSessionData
+import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.common.utils.DateTimeUtils
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
@@ -103,6 +106,9 @@ class SamsungHealthPlugin(
         LaunchedEffect(permissionGranted) {
             if (permissionGranted) {
                 viewModel.loadHeartRateData()
+                viewModel.loadSleepData()
+                viewModel.loadStepData()
+                viewModel.loadBloodPressureData()
                 // 다른 데이터 로드 메서드 추가 가능
                 // viewModel.loadStepData()
                 // viewModel.loadSleepData()
@@ -164,6 +170,9 @@ class SamsungHealthPlugin(
 
                     HealthDataOverview(
                         heartRate = uiState.heartRate,
+                        sleep = uiState.sleep,
+                        step = uiState.step,
+                        bloodPressure = uiState.bloodPressure,
                         onHeartRateClick = {
                             viewModel.runWithPermissions(
                                 context,
@@ -173,6 +182,7 @@ class SamsungHealthPlugin(
                             }
                         }
                     )
+
                 }
             }
         }
@@ -197,6 +207,9 @@ private fun ErrorScreen(message: String?) {
 @Composable
 fun HealthDataOverview(
     heartRate: List<HeartRateData>,
+    sleep: List<SleepSessionData>,
+    step: List<StepData>,
+    bloodPressure: List<BloodPressureData>,
     onHeartRateClick: () -> Unit,
 ) {
     LazyVerticalGrid(
@@ -209,13 +222,47 @@ fun HealthDataOverview(
         item {
             OverviewCard(
                 title = "심박수",
-                value = if (heartRate.isNotEmpty() && heartRate.first().samples.isNotEmpty()) {
-                    "${heartRate.first().samples.first().beatsPerMinute} BPM"
+                value = if (heartRate.isNotEmpty() && heartRate.last().samples.isNotEmpty()) {
+                    "${heartRate.last().samples.last().beatsPerMinute} BPM"
                 } else "기록 없음",
                 description = if (heartRate.isNotEmpty()) {
-                    "최근: ${DateTimeUtils.formatDateTime(heartRate.first().startTime)}"
+                    "최근: ${DateTimeUtils.formatDateTime(heartRate.last().startTime)}"
                 } else "기록을 불러오려면 클릭하세요",
                 onClick = onHeartRateClick
+            )
+        }
+        item {
+            OverviewCard(
+                title = "수면",
+                value = if (sleep.isNotEmpty()) {
+                    "${sleep.size} 세션"
+                } else "기록 없음",
+                description = if (sleep.isNotEmpty()) {
+                    "최근: ${DateTimeUtils.formatDateTime(sleep.first().startTime)}"
+                } else "기록을 불러오려면 클릭하세요",
+                onClick = { /* TODO: 수면 데이터 클릭 시 동작 */ }
+            )
+        }
+        item {
+            OverviewCard(
+                title = "걸음 수",
+                value = if (step.isNotEmpty()) {
+                    "${step.last().stepCount} 걸음"
+                } else "기록 없음",
+                description = if (step.isNotEmpty()) {
+                    "최근: ${DateTimeUtils.formatDateTime(step.first().startTime)}"
+                } else "기록을 불러오려면 클릭하세요",
+                onClick = { /* TODO: 걸음 수 데이터 클릭 시 동작 */ }
+            )
+        }
+        item {
+            OverviewCard(
+                title = "혈압",
+                value = if (bloodPressure.isNotEmpty()) {
+                    "${bloodPressure.last().systolic}~${bloodPressure.last().diastolic} 걸음"
+                } else "기록 없음",
+                description = "기록을 불러오려면 클릭하세요",
+                onClick = { /* TODO: 혈압 데이터 클릭 시 동작 */ }
             )
         }
     }

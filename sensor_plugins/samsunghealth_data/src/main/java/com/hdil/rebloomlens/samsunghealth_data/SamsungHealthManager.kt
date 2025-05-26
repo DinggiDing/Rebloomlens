@@ -3,7 +3,10 @@ package com.hdil.rebloomlens.samsunghealth_data
 import android.app.Activity
 import android.content.Context
 import com.hdil.rebloomlens.common.utils.Logger
+import com.hdil.rebloomlens.samsunghealth_data.bloodpressure.BloodPressureDataSource
 import com.hdil.rebloomlens.samsunghealth_data.heartrate.HeartRateDataSource
+import com.hdil.rebloomlens.samsunghealth_data.sleep.SleepDataSource
+import com.hdil.rebloomlens.samsunghealth_data.steps.StepDataSource
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.permission.AccessType
@@ -28,6 +31,9 @@ class SamsungHealthManager(
 ) {
     // 각 데이터 타입별 데이터 소스
     private val heartRateDataSource = HeartRateDataSource(healthDataStore)
+    private val sleepDataSource = SleepDataSource(healthDataStore)
+    private val stepDataSource = StepDataSource(healthDataStore)
+    private val bloodPressureDataSource = BloodPressureDataSource(healthDataStore)
 
     val permissions: Set<Permission> by lazy { connectToSamsungHealth() }
 
@@ -112,6 +118,11 @@ class SamsungHealthManager(
      */
     suspend fun readHeartRateData() = heartRateDataSource.readHeartRate()
 
+    suspend fun readSleepData() = sleepDataSource.readSleep()
+
+    suspend fun readStepData() = stepDataSource.readStep()
+
+    suspend fun readBloodPressureData() = bloodPressureDataSource.readBloodPressure()
     // 다른 데이터 타입에 대한 메소드도 추가할 수 있습니다.
     // 예: readStepData(), readSleepData() 등
 }
