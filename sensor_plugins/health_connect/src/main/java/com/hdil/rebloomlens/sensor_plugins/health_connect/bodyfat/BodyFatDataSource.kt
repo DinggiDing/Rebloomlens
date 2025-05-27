@@ -35,7 +35,7 @@ class BodyFatDataSource(
                 BodyFatData(
                     uid = session.metadata.id,
                     time = session.time,
-                    bodyFatPercentage = session.percentage
+                    bodyFatPercentage = session.percentage.value
                 )
             )
         }
