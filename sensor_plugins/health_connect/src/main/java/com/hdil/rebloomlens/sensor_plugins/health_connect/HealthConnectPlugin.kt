@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hdil.rebloomlens.common.model.BloodGlucoseData
 import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.BodyFatData
+import com.hdil.rebloomlens.common.model.ExerciseData
 import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.StepData
@@ -77,6 +78,7 @@ class HealthConnectPlugin(
         // ViewModel
         val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
         val uiState by viewModel.uiState.collectAsState()
+        val lastSyncTime by viewModel.lastSyncTime.collectAsState()
 
         LaunchedEffect(Unit) {
             scope.launch {
@@ -94,6 +96,8 @@ class HealthConnectPlugin(
                 viewModel.loadBloodPressureData()
                 viewModel.loadBodyFatData()
                 viewModel.loadHeartRateData()
+                viewModel.loadExerciseData()
+                viewModel.updateLastSyncTime()
             }
         }
 
@@ -127,6 +131,11 @@ class HealthConnectPlugin(
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
+                        Text(
+                            text = "마지막 동기화: ${lastSyncTime?.let { DateTimeUtils.formatDateTime(it) } ?: "없음"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         HealthDataOverview(
                             sleepSessions = uiState.sleepSessions,
                             steps = uiState.steps,
@@ -134,7 +143,8 @@ class HealthConnectPlugin(
                             bloodGlucose = uiState.bloodGlucose,
                             bloodPressure = uiState.bloodPressure,
                             bodyFat = uiState.bodyFat,
-                            heartRate = uiState.heartRate
+                            heartRate = uiState.heartRate,
+                            exercise = uiState.exercise
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -167,7 +177,8 @@ fun HealthDataOverview(
     bloodGlucose: List<BloodGlucoseData>,
     bloodPressure: List<BloodPressureData>,
     bodyFat: List<BodyFatData>,
-    heartRate: List<HeartRateData>
+    heartRate: List<HeartRateData>,
+    exercise: List<ExerciseData>,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -237,7 +248,7 @@ fun HealthDataOverview(
             OverviewCard(
                 title = "체지방",
                 value = if (bodyFat.isNotEmpty()) {
-                    String.format("%.1f%%", bodyFat.first().bodyFatPercentage.value)
+                    String.format("%.1f%%", bodyFat.first().bodyFatPercentage)
                 } else "기록 없음",
                 description = if (bodyFat.isNotEmpty()) {
                     "최근: ${DateTimeUtils.formatDateTime(bodyFat.first().time)}"
@@ -253,6 +264,18 @@ fun HealthDataOverview(
                 } else "기록 없음",
                 description = if (heartRate.isNotEmpty()) {
                     "최근: ${DateTimeUtils.formatDateTime(heartRate.first().startTime)}"
+                } else "기록 없음"
+            )
+        }
+
+        item {
+            OverviewCard(
+                title = "운동",
+                value = if (exercise.isNotEmpty()) {
+                    "${exercise.last().exerciseType}"
+                } else "기록 없음",
+                description = if (exercise.isNotEmpty()) {
+                    "최근: ${DateTimeUtils.formatDateTime(exercise.first().startTime)}"
                 } else "기록 없음"
             )
         }

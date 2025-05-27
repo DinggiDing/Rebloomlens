@@ -2,11 +2,14 @@ package com.hdil.rebloomlens.samsunghealth_data.bodycomposition
 
 import com.hdil.rebloomlens.common.model.BodyFatData
 import com.hdil.rebloomlens.common.model.SkeletalMuscleMassData
+import com.hdil.rebloomlens.common.model.WeightData
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.Ordering
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -19,7 +22,7 @@ class BodyCompositionDataSource(
 
         val sessions = mutableListOf<BodyFatData>()
 
-        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), lastDay.toLocalDateTime())
+        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), LocalDateTime.ofInstant(Instant.now(), firstDay.zone))
         val readRequest = DataTypes.BODY_COMPOSITION.readDataRequestBuilder
             .setLocalTimeFilter(localTimeFilter)
             .setOrdering(Ordering.DESC)
@@ -67,11 +70,11 @@ class BodyCompositionDataSource(
         return sessions
     }
 
-    suspend fun readWeight(): List<Double> {
+    suspend fun readWeight(): List<WeightData> {
         val lastDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS)
         val firstDay = lastDay.minusDays(30)
 
-        val weights = mutableListOf<Double>()
+        val sessions = mutableListOf<WeightData>()
 
         val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), lastDay.toLocalDateTime())
         val readRequest = DataTypes.BODY_COMPOSITION.readDataRequestBuilder
@@ -82,8 +85,14 @@ class BodyCompositionDataSource(
         val bodyCompositionList = healthDataStore.readData(readRequest).dataList
         bodyCompositionList.forEach { session ->
             val weight = session.getValue(DataType.BodyCompositionType.WEIGHT)?.toDouble() ?: return@forEach
-            weights.add(weight)
+            sessions.add(
+                WeightData.fromSamsung(
+                    uid = session.uid,
+                    time = session.startTime,
+                    weightKgFloat = weight
+                )
+            )
         }
-        return weights
+        return sessions
     }
 }

@@ -5,6 +5,7 @@ import androidx.health.connect.client.records.BodyFatRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.BodyFatData
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -25,7 +26,7 @@ class BodyFatDataSource(
         val sessions = mutableListOf<BodyFatData>()
         val bodyFatRequest = ReadRecordsRequest(
             recordType = BodyFatRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
+            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), Instant.now()),
             ascendingOrder = false
         )
 

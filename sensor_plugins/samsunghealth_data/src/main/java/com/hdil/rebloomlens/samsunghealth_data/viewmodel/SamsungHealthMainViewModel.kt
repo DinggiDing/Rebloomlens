@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hdil.rebloomlens.common.model.BloodPressureData
+import com.hdil.rebloomlens.common.model.BodyFatData
+import com.hdil.rebloomlens.common.model.ExerciseData
 import com.hdil.rebloomlens.common.model.HeartRateData
+import com.hdil.rebloomlens.common.model.SkeletalMuscleMassData
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.StepData
+import com.hdil.rebloomlens.common.model.WeightData
 import com.hdil.rebloomlens.common.utils.Logger
 import com.hdil.rebloomlens.samsunghealth_data.SamsungHealthManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,6 +125,98 @@ class SamsungHealthMainViewModel(
         }
     }
 
+    fun loadBodyFatData() {
+        viewModelScope.launch {
+            Logger.e("loadBodyFatData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val bodyFat = samsungHealthManager.readBodyFatPercentageData()
+                _uiState.update {
+                    it.copy(
+                        bodyFat = bodyFat,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadSkeletalMuscleMassData() {
+        viewModelScope.launch {
+            Logger.e("loadSkeletalMuscleMassData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val skeletalMuscleMass = samsungHealthManager.readSkeletalMuscleMassData()
+                _uiState.update {
+                    it.copy(
+                        skeletalMuscleMass = skeletalMuscleMass,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadWeightData() {
+        viewModelScope.launch {
+            Logger.e("loadWeightData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val weight = samsungHealthManager.readWeightData()
+                _uiState.update {
+                    it.copy(
+                        weight = weight,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadExerciseData() {
+        viewModelScope.launch {
+            Logger.e("loadExerciseData called")
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val exercise = samsungHealthManager.readExerciseData()
+                _uiState.update {
+                    it.copy(
+                        exercise = exercise,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        error = e.message,
+                        isLoading = false
+                    )
+                }
+            }
+        }
+    }
+
     // 권한이 필요한 작업을 실행하기 위한 함수
     fun runWithPermissions(
         context: Context,
@@ -153,6 +249,10 @@ data class SamsungHealthUiState(
     val sleep: List<SleepSessionData> = emptyList(),
     val step: List<StepData> = emptyList(),
     val bloodPressure: List<BloodPressureData> = emptyList(),
+    val bodyFat: List<BodyFatData> = emptyList(),
+    val skeletalMuscleMass: List<SkeletalMuscleMassData> = emptyList(),
+    val weight: List<WeightData> = emptyList(),
+    val exercise: List<ExerciseData> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )

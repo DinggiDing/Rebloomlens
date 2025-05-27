@@ -6,7 +6,7 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.HeartRateSample
-import com.hdil.rebloomlens.common.utils.Logger
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -20,7 +20,7 @@ class HeartRateDataSource(
         val sessions = mutableListOf<HeartRateData>()
         val heartRateRequest = ReadRecordsRequest(
             recordType = HeartRateRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
+            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), Instant.now()),
             ascendingOrder = false
         )
 
@@ -40,8 +40,6 @@ class HeartRateDataSource(
                     samples = convertedSamples
                 )
             )
-            Logger.e("HeartRateDataSource: start: ${session.startTime} ~ end: ${session.endTime}")
-            Logger.e("HeartRateDataSource: readHeartRate: ${convertedSamples.size} samples")
         }
 
         return sessions

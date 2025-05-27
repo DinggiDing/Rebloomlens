@@ -47,7 +47,7 @@
       "plugin_id": "samsung_health",
       "type": "samsung_health",
       "title": "헬스 데이터 수집",
-      "recordTypes": ["Heart Rate", "Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Exercise"]
+      "recordTypes": ["Heart Rate", "Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Exercise", "Body Composition"]
     }
   ]
 }

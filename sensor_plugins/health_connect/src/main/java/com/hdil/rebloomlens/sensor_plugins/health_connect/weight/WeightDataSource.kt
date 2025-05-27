@@ -5,8 +5,7 @@ import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.WeightData
-import com.hdil.rebloomlens.common.utils.Logger
-import com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectManager
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -27,7 +26,7 @@ class WeightDataSource(
         val sessions = mutableListOf<WeightData>()
         val weightRequest = ReadRecordsRequest(
             recordType = WeightRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
+            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), Instant.now()),
             ascendingOrder = false
         )
 

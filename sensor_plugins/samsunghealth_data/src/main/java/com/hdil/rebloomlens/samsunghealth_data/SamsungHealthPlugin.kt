@@ -109,6 +109,10 @@ class SamsungHealthPlugin(
                 viewModel.loadSleepData()
                 viewModel.loadStepData()
                 viewModel.loadBloodPressureData()
+                viewModel.loadBodyFatData()
+                viewModel.loadSkeletalMuscleMassData()
+                viewModel.loadWeightData()
+                viewModel.loadExerciseData()
                 // 다른 데이터 로드 메서드 추가 가능
                 // viewModel.loadStepData()
                 // viewModel.loadSleepData()

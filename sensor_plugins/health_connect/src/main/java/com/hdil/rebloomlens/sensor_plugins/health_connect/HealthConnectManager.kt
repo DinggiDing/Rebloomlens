@@ -1,10 +1,6 @@
 package com.hdil.rebloomlens.sensor_plugins.health_connect
 
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.res.Resources.NotFoundException
-import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.mutableStateOf
@@ -20,21 +16,16 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.WeightRecord
-import androidx.health.connect.client.request.AggregateRequest
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodglucose.BloodGlucoseDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodpressure.BloodPressureDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat.BodyFatDataSource
+import com.hdil.rebloomlens.sensor_plugins.health_connect.exercise.ExerciseDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate.HeartRateDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepDataSource
 import com.hdil.rebloomlens.sensor_plugins.health_connect.weight.WeightDataSource
 import org.json.JSONArray
-import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
-import kotlin.time.Instant
 
 
 // Utilized by https://github.com/android/health-samples
@@ -67,6 +58,9 @@ class HealthConnectManager(
     }
     private val heartRateDataSource by lazy {
         HeartRateDataSource(healthConnectClient)
+    }
+    private val exerciseDataSource by lazy {
+        ExerciseDataSource(healthConnectClient)
     }
 
     var availability = mutableStateOf(SDK_UNAVAILABLE)
@@ -174,4 +168,9 @@ class HealthConnectManager(
      * Reads in existing [HeartRateData]s.
      */
     suspend fun readHeartRateData() = heartRateDataSource.readHeartRate()
+
+    /**
+     * Reads in existing [ExerciseData]s.
+     */
+    suspend fun readExerciseData() = exerciseDataSource.readExercises()
 }

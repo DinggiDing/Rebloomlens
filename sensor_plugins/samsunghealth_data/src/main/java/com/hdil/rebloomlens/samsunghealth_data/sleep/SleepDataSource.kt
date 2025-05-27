@@ -9,6 +9,8 @@ import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.Ordering
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -24,13 +26,12 @@ class SleepDataSource(
 
         val sessions = mutableListOf<SleepSessionData>()
 
-        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), lastDay.toLocalDateTime())
+        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), LocalDateTime.ofInstant(Instant.now(), firstDay.zone))
         val readRequest = DataTypes.SLEEP.readDataRequestBuilder
             .setLocalTimeFilter(localTimeFilter)
             .setOrdering(Ordering.DESC)
             .build()
         val sleepList = healthDataStore.readData(readRequest).dataList
-        Logger.e("수면 데이터 조회 결과: ${sleepList.size}개의 세션 발견")
 
         sleepList.forEach { session ->
             // TODO: Handle null values for startTime and endTime
@@ -45,7 +46,6 @@ class SleepDataSource(
 
             // SESSIONS 키로 시도
             val sessionData = session.getValue(DataType.SleepType.SESSIONS)
-            Logger.e("SESSIONS 데이터: $sessionData, 타입: ${sessionData?.javaClass?.name}")
 
             sessionData.let { stagesData ->
                 if (stagesData is List<*>) {

@@ -7,6 +7,8 @@ import com.samsung.android.sdk.health.data.request.DataType
 import com.samsung.android.sdk.health.data.request.DataTypes
 import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.Ordering
+import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -19,7 +21,7 @@ class HeartRateDataSource(
 
         val sessions = mutableListOf<HeartRateData>()
 
-        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), lastDay.toLocalDateTime())
+        val localTimeFilter = LocalTimeFilter.of(firstDay.toLocalDateTime(), LocalDateTime.ofInstant(Instant.now(), firstDay.zone))
         val readRequest = DataTypes.HEART_RATE.readDataRequestBuilder
             .setLocalTimeFilter(localTimeFilter)
             .setOrdering(Ordering.DESC)

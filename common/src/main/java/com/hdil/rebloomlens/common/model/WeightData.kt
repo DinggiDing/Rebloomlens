@@ -7,27 +7,30 @@ data class WeightData(
     val uid: String,
     val time: Instant,
     val weight: Mass,
-)
+) {
+    // 1) 보조 생성자: epoch 밀리초 + kg(double) → Instant + Mass 변환
+    constructor(
+        uid: String,
+        time: Instant,
+        weightKg: Double
+    ) : this(
+        uid = uid,
+        time = time,
+        weight = Mass.kilograms(weightKg)
+    )
 
-// 3) Samsung Health SDK → WeightData 매퍼
-//    (com.samsung.android.sdk.healthdata.HealthData, androidx.health.connect.client.units.Mass)
-class SamsungWeightDataAdapter: HealthDataAdapter<HealthData, WeightData> {
-    override fun toDomain(source: HealthData): WeightData {
-        // “weight” 필드는 kg 단위 double
-        val kgValue = source.getDouble("weight")
-        val massValue = Mass.kilograms(kgValue)
-
-        // “measurement_time” 필드는 epoch millis
-        val timeMs = source.getLong("measurement_time")
-        val instant = Instant.ofEpochMilli(timeMs)
-
-        // 데이터 고유 식별자(_ID 상수는 SDK마다 다를 수 있음)
-        val uid = source.getString(HealthData._ID)
-
-        return WeightData(
+    companion object {
+        /**
+         * 삼성헬스에서 읽어온 Float(kg) + epoch millis → WeightData 생성
+         */
+        fun fromSamsung(
+            uid: String,
+            time: Instant,
+            weightKgFloat: Double
+        ): WeightData = WeightData(
             uid = uid,
-            time = instant,
-            weight = massValue
+            time = time,
+            weightKg = weightKgFloat
         )
     }
 }

@@ -5,6 +5,7 @@ import androidx.health.connect.client.records.BloodGlucoseRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.BloodGlucoseData
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
@@ -25,7 +26,7 @@ class BloodGlucoseDataSource(
         val sessions = mutableListOf<BloodGlucoseData>()
         val bloodGlucoseRequest = ReadRecordsRequest(
             recordType = BloodGlucoseRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), lastDay.toInstant()),
+            timeRangeFilter = TimeRangeFilter.between(firstDay.toInstant(), Instant.now()),
             ascendingOrder = false
         )
 
