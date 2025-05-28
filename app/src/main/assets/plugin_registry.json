@@ -48,6 +48,11 @@
       "type": "samsung_health",
       "title": "헬스 데이터 수집",
       "recordTypes": ["Heart Rate", "Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Exercise", "Body Composition"]
+    },
+    {
+      "plugin_id": "voice_input",
+      "title": "사용자 의견 입력",
+      "placeholder": "여기에 입력하세요..."
     }
   ]
 }

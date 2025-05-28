@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/manualInput_plugins" />
             <option value="$PROJECT_DIR$/manualInput_plugins/likert_scale" />
             <option value="$PROJECT_DIR$/manualInput_plugins/text_input" />
+            <option value="$PROJECT_DIR$/manualInput_plugins/voice_input" />
             <option value="$PROJECT_DIR$/sensor_plugins" />
             <option value="$PROJECT_DIR$/sensor_plugins/health_connect" />
             <option value="$PROJECT_DIR$/sensor_plugins/samsunghealth_data" />

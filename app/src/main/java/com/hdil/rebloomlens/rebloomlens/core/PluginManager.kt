@@ -62,6 +62,7 @@ object PluginManager {
             "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
             "health_connect" -> com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectPlugin(pluginId, config)
             "samsung_health" -> com.hdil.rebloomlens.samsunghealth_data.SamsungHealthPlugin(pluginId, config)
+            "voice_input" -> com.hdil.voice_input.VoiceInputPlugin(pluginId, config)
             else -> null
         }
     }

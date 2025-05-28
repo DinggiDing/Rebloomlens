@@ -2,6 +2,7 @@ package com.hdil.rebloomlens.samsunghealth_data.sleep
 
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.SleepStage
+import com.hdil.rebloomlens.common.model.SleepStageType
 import com.hdil.rebloomlens.common.utils.Logger
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.request.DataType
@@ -14,8 +15,6 @@ import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
 
-
-// TODO: 수면 stage 데이터 처리 개선
 
 class SleepDataSource(
     private val healthDataStore: HealthDataStore
@@ -34,36 +33,48 @@ class SleepDataSource(
         val sleepList = healthDataStore.readData(readRequest).dataList
 
         sleepList.forEach { session ->
-            // TODO: Handle null values for startTime and endTime
-            val startTime = session.startTime
-            val endTime = session.endTime!!
             val duration : Duration = session.getValue(DataType.SleepType.DURATION) ?: return@forEach
+            val sessionData = session.getValue(DataType.SleepType.SESSIONS) ?: return@forEach
+            val sleepScore: Int? = session.getValue(DataType.SleepType.SLEEP_SCORE)?.toInt()
 
-            val stagesList = mutableListOf<SleepStage>()
-//            val stagesData = session.getValue(DataType.SleepType.SESSIONS) as? List<*>
-//            Logger.e("Stages Data: $stagesData")
-
-
-            // SESSIONS 키로 시도
-            val sessionData = session.getValue(DataType.SleepType.SESSIONS)
-
-            sessionData.let { stagesData ->
-                if (stagesData is List<*>) {
-                    stagesData.forEach { stage ->
-                        if (stage is SleepStage) {
-                            stagesList.add(stage)
-                            Logger.e("수면 단계: ${stage.stage}, 시작: ${stage.startTime}, 종료: ${stage.endTime}")
-                        } else {
-                            Logger.e("알 수 없는 단계 데이터: $stage")
-                        }
+            val stages = mutableListOf<SleepStage>()
+            if (sessionData is List<*>) {
+                sessionData.forEach { stageData ->
+                    stageData?.stages?.forEach { stage ->
+                        stages.add(
+                            SleepStage(
+                                startTime = stage.startTime,
+                                endTime = stage.endTime,
+                                stage = mapSleepStageType(stage.stage)
+                            )
+                        )
                     }
-                } else {
-                    Logger.e("SESSIONS 데이터가 예상한 형식이 아닙니다: $stagesData")
                 }
+            } else {
+                Logger.e("수면 세션 ID: ${session.uid} - 예상치 못한 세션 데이터 형식: ${sessionData.javaClass.name}")
             }
-
+            sessions.add(
+                SleepSessionData(
+                    uid = session.uid,
+                    startTime = session.startTime,
+                    endTime = session.endTime!!,
+                    duration = duration,
+                    score = sleepScore,
+                    stages = stages
+                )
+            )
         }
         return sessions
+    }
 
+    private fun mapSleepStageType(stage: DataType.SleepType.StageType): SleepStageType {
+        return when (stage) {
+            DataType.SleepType.StageType.AWAKE -> SleepStageType.AWAKE
+            DataType.SleepType.StageType.LIGHT -> SleepStageType.LIGHT
+            DataType.SleepType.StageType.DEEP -> SleepStageType.DEEP
+            DataType.SleepType.StageType.REM -> SleepStageType.REM
+            DataType.SleepType.StageType.UNDEFINED -> SleepStageType.UNKNOWN
+            else -> SleepStageType.UNKNOWN
+        }
     }
 }

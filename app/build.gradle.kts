@@ -42,6 +42,7 @@ android {
 dependencies {
     implementation(project(":manualInput_plugins:text_input"))
     implementation(project(":manualInput_plugins:likert_scale"))
+    implementation(project(":manualInput_plugins:voice_input"))
     implementation(project(":sensor_plugins:health_connect"))
     implementation(project(":sensor_plugins:samsunghealth_data"))
     implementation(project(":common"))
