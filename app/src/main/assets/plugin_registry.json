@@ -1,43 +1,6 @@
 {
   "plugins": [
     {
-      "plugin_id": "likert_scale",
-      "title": "일일 만족도 조사",
-      "questions": [
-        {
-          "text": "오늘 하루에 얼마나 만족하셨나요?",
-          "scale": ["1", "2", "3", "4", "5"]
-        },
-        {
-          "text": "현재 기분을 평가해주세요.",
-          "scale": ["0", "1", "2", "3", "4", "5", "6"]
-        },
-        {
-          "text": "업무 성취감을 느끼셨나요?",
-          "scale": ["1", "2", "3", "4", "5", "6", "7"]
-        }
-      ]
-    },
-    {
-      "plugin_id": "text_input",
-      "title": "사용자 의견 입력",
-      "placeholder": "여기에 입력하세요..."
-    },
-    {
-      "plugin_id": "likert_scale",
-      "title": "일일 만족도 조사",
-      "questions": [
-        {
-          "text": "오늘 하루에 얼마나 만족하셨나요?",
-          "scale": ["1-10", "11-30", "31-50", "51-70", "71-90"]
-        },
-        {
-          "text": "업무 성취감을 느끼셨나요?",
-          "scale": ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]
-        }
-      ]
-    },
-    {
       "plugin_id": "health_connect",
       "type": "health_connect",
       "title": "헬스 데이터 수집",
@@ -50,9 +13,120 @@
       "recordTypes": ["Heart Rate", "Steps", "Sleep", "Blood Pressure", "Blood Glucose", "Exercise", "Body Composition"]
     },
     {
-      "plugin_id": "voice_input",
-      "title": "사용자 의견 입력",
-      "placeholder": "여기에 입력하세요..."
+      "plugin_id": "likert_scale"
+    },
+    {
+      "plugin_id": "text_input"
+    },
+    {
+      "plugin_id": "voice_input"
+    }
+  ],
+  "assignments": [
+    {
+      "category": "Sleep",
+      "plugins": [
+        {
+          "plugin_id": "text_input",
+          "instances": [
+            {
+              "title": "수면점수?"
+            },
+            {
+              "title": "수면질"
+            }
+          ]
+        },
+        {
+          "plugin_id": "likert_scale",
+          "instances": [
+            {
+              "title": "수면점수",
+              "scale": [" ~ 50", "51 ~ 70", "71 ~ 90", "91 ~ 100"]
+            },
+            {
+              "title": "수면질",
+              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+            }
+          ]
+        },
+        {
+          "plugin_id": "voice_input",
+          "instances": [
+            {
+              "title": "오늘 수면 어땠어요?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "Diet",
+      "plugins": [
+        {
+          "plugin_id": "text_input",
+          "instances": [
+            {
+              "title": "오늘 식사 만족도는?"
+            }
+          ]
+        },
+        {
+          "plugin_id": "likert_scale",
+          "instances": [
+            {
+              "title": "채소/과일 섭취 만족도",
+              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+            },
+            {
+              "title": "단백질 섭취량",
+              "scale": ["적게 섭취", "적당량", "많이 섭취"]
+            }
+          ]
+        },
+        {
+          "plugin_id": "voice_input",
+          "instances": [
+            {
+              "title": "식단 기록해주세요"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "Mental Health",
+      "plugins": [
+        {
+          "plugin_id": "text_input",
+          "instances": [
+            {
+              "title": "오늘 감정을 기록해보세요"
+            }
+          ]
+        },
+        {
+          "plugin_id": "likert_scale",
+          "instances": [
+            {
+              "title": "스트레스 정도",
+              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+            },
+            {
+              "title": "불안감 수준",
+              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+            }
+          ]
+        },
+        {
+          "plugin_id": "voice_input",
+          "instances": [
+            {
+              "title": "오늘 정신 건강 상태는 어땠어요?"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
