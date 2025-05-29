@@ -140,4 +140,4 @@ class RecognitionListenerImpl(
     }
 }
 
-private fun Logger.d(string: String) {}
+private fun Logger.d(string: kotlin.String) {}
