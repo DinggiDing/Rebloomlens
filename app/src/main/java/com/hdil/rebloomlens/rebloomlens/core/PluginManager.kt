@@ -2,27 +2,39 @@ package com.hdil.rebloomlens.rebloomlens.core
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
+import com.hdil.rebloomlens.rebloomlens.R
 import org.json.JSONObject
+
 
 //ROLE  dynamically load plugin (init, register, load UI)
 /*
@@ -252,7 +264,7 @@ object PluginManager {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
             // 1. 헬스 플러그인 섹션
@@ -312,23 +324,95 @@ object PluginManager {
             pluginId.startsWith("samsung_health") -> "Samsung Health"
             else -> pluginId.substringBefore("_").replace("_", " ").capitalize()
         }
+        val recordTypesText = plugins[pluginId]?.config?.let { config ->
+            if (config.has("record_types")) {
+                try {
+                    val recordTypes = config.getJSONArray("recordTypes")
+                    val recordTypeList = mutableListOf<String>()
+
+                    val count = minOf(recordTypes.length(), 3)
+                    for (i in 0 until count) {
+                        recordTypeList.add(recordTypes.getString(i))
+                    }
+
+                    if (recordTypes.length() > 3) {
+                        recordTypeList.add("...")
+                    }
+
+                    recordTypeList.joinToString(", ")
+                } catch (e: Exception) {
+                    "no data"
+                }
+            } else {
+                "no data"
+            }
+        } ?: "no data"
 
         Surface(
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = displayName,
+//                    style = MaterialTheme.typography.bodyLarge
+//                )
+//            }
+
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = displayName,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                // 1) 아이콘 + 원형 백그라운드
+                val bgColor = if (pluginId.startsWith("health_connect"))
+                    MaterialTheme.colorScheme.primaryContainer
+                else
+                    MaterialTheme.colorScheme.secondaryContainer
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(bgColor, shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val iconRes = if (pluginId.startsWith("health_connect"))
+                        R.drawable.healthconnect_logo
+                    else
+                        R.drawable.samsunghealth_logo
+
+                    Icon(
+                        painter = painterResource(iconRes),
+                        contentDescription = displayName,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // 2) 제목 + 설명
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = recordTypesText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
     }
