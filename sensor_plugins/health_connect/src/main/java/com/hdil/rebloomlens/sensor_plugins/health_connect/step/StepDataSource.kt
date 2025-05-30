@@ -32,7 +32,6 @@ class StepDataSource(
 
         val steps = healthConnectClient.readRecords(stepRequest)
         steps.records.forEach { session ->
-            val sessionTimeFilter = TimeRangeFilter.between(session.startTime, session.endTime)
             sessions.add(
                 StepData(
                     uid = session.metadata.id,

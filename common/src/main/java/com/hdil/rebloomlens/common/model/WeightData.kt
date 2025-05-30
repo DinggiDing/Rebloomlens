@@ -8,6 +8,9 @@ data class WeightData(
     val time: Instant,
     val weight: Mass,
 ) {
+    // Mass 객체에서 Double(kg) 값을 추출하는 함수
+    fun getWeightInKg(): Double = weight.inKilograms
+
     // 1) 보조 생성자: epoch 밀리초 + kg(double) → Instant + Mass 변환
     constructor(
         uid: String,
