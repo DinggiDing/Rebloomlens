@@ -2,6 +2,7 @@ package com.hdil.rebloomlens.rebloomlens.core
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,13 +19,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -41,117 +42,6 @@ import org.json.JSONObject
  * PluginManager is responsible for loading and managing plugins in the application.
  * It initializes plugins based on a configuration file and provides a UI for interacting with them.
  */
-
-//object PluginManager {
-//    private val plugins = mutableMapOf<String, Plugin>()
-//
-//    fun initialize(context: Context) {
-//        val configJson = ConfigLoader.load(context, "plugin_registry.json")
-//        plugins.clear()
-//
-//        try {
-//            val pluginArray = configJson.getJSONArray("plugins")
-//            for (i in 0 until pluginArray.length()) {
-//                val pluginConfig = pluginArray.getJSONObject(i)
-//                val pluginId = pluginConfig.getString("plugin_id") + "_" + i  // Append index to make key unique
-//
-//                val plugin = createPlugin(pluginConfig.getString("plugin_id"), pluginConfig)
-//                plugin?.let {
-//                    it.initialize(context)
-//                    plugins[pluginId] = it
-//                    Log.d("PluginManager", "Loaded plugin : $pluginId")
-//                }
-//            }
-//        } catch (e: Exception) {
-//            Log.e("PluginManger", "Error initializing plugins : ${e.message}")
-//        }
-//    }
-//
-//    private fun createPlugin(pluginId: String, config: JSONObject): Plugin? {
-//        return when (pluginId) {
-//            "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, config)
-//            "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
-//            "health_connect" -> com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectPlugin(pluginId, config)
-//            "samsung_health" -> com.hdil.rebloomlens.samsunghealth_data.SamsungHealthPlugin(pluginId, config)
-//            "voice_input" -> com.hdil.voice_input.VoiceInputPlugin(pluginId, config)
-//            else -> null
-//        }
-//    }
-//
-//    @Composable
-//    fun loadPluginsUI(navController: NavController) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp),
-//            verticalArrangement = Arrangement.spacedBy(12.dp)
-//        ) {
-//            Text(
-//                text = "플러그인",
-//                style = MaterialTheme.typography.titleLarge,
-//                modifier = Modifier.padding(bottom = 8.dp)
-//            )
-//
-//            plugins.forEach { (pluginId, _) ->
-//                PluginItem(
-//                    pluginId = pluginId,
-//                    onClick = { navController.navigate("pluginDetail/$pluginId") }
-//                )
-//            }
-//        }
-//    }
-//
-//    @Composable
-//    private fun PluginItem(pluginId: String, onClick: () -> Unit) {
-//        val displayName = pluginId.substringBefore("_").replace("_", " ").capitalize()
-//
-//        Surface(
-//            onClick = onClick,
-//            modifier = Modifier.fillMaxWidth(),
-//            shape = RoundedCornerShape(8.dp),
-//            color = MaterialTheme.colorScheme.surfaceVariant,
-//            tonalElevation = 2.dp
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    text = displayName,
-//                    style = MaterialTheme.typography.bodyLarge
-//                )
-//
-//            }
-//        }
-//    }
-//
-//
-//    @Composable
-//    fun navigateToPluginDetail(pluginId: String) {
-//        plugins[pluginId]?.renderUI() ?: Text("Plugin not found")
-//    }
-//
-//    @Composable
-//    fun PluginNavigation() {
-//        val navController = rememberNavController()
-//        NavHost(navController, startDestination = "pluginList") {
-//            composable("pluginList") {
-//                loadPluginsUI(navController)
-//            }
-//            composable("pluginDetail/{pluginId}") { backStackEntry ->
-//                val pluginId = backStackEntry.arguments?.getString("pluginId")
-//                if (pluginId != null) {
-//                    navigateToPluginDetail(pluginId)
-//                } else {
-//                    Text("Invalid Plugin")
-//                }
-//            }
-//        }
-//    }
-//}
 
 object PluginManager {
     private val plugins = mutableMapOf<String, Plugin>()
@@ -263,7 +153,8 @@ object PluginManager {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .background(color = MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
@@ -290,6 +181,8 @@ object PluginManager {
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             // 2. 카테고리별 플러그인 섹션
@@ -324,8 +217,10 @@ object PluginManager {
             pluginId.startsWith("samsung_health") -> "Samsung Health"
             else -> pluginId.substringBefore("_").replace("_", " ").capitalize()
         }
+
+
         val recordTypesText = plugins[pluginId]?.config?.let { config ->
-            if (config.has("record_types")) {
+            if (config.has("recordTypes")) {
                 try {
                     val recordTypes = config.getJSONArray("recordTypes")
                     val recordTypeList = mutableListOf<String>()
@@ -352,48 +247,27 @@ object PluginManager {
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.background,
         ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    text = displayName,
-//                    style = MaterialTheme.typography.bodyLarge
-//                )
-//            }
-
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1) 아이콘 + 원형 백그라운드
-                val bgColor = if (pluginId.startsWith("health_connect"))
-                    MaterialTheme.colorScheme.primaryContainer
-                else
-                    MaterialTheme.colorScheme.secondaryContainer
-
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(bgColor, shape = CircleShape),
-                    contentAlignment = Alignment.Center
+                        .size(40.dp),
                 ) {
                     val iconRes = if (pluginId.startsWith("health_connect"))
                         R.drawable.healthconnect_logo
                     else
                         R.drawable.samsunghealth_logo
 
-                    Icon(
+                    Image(
                         painter = painterResource(iconRes),
                         contentDescription = displayName,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(40.dp).clip(CircleShape)
                     )
                 }
 
@@ -404,7 +278,6 @@ object PluginManager {
                     Text(
                         text = displayName,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -423,7 +296,7 @@ object PluginManager {
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
