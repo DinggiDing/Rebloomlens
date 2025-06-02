@@ -1,28 +1,22 @@
 package com.hdil.rebloomlens.samsunghealth_data
 
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,25 +28,27 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hdil.rebloomlens.common.model.BloodPressureData
+import com.hdil.rebloomlens.common.model.BodyFatData
+import com.hdil.rebloomlens.common.model.ExerciseData
 import com.hdil.rebloomlens.common.model.HeartRateData
 import com.hdil.rebloomlens.common.model.SleepSessionData
 import com.hdil.rebloomlens.common.model.StepData
+import com.hdil.rebloomlens.common.model.WeightData
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
-import com.hdil.rebloomlens.common.utils.DateTimeUtils
 import com.hdil.rebloomlens.samsunghealth_data.utility.AppConstants
 import com.hdil.rebloomlens.samsunghealth_data.viewmodel.SamsungHealthMainViewModel
 import com.hdil.rebloomlens.samsunghealth_data.viewmodel.SamsungHealthViewModelFactory
 import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.HealthDataStore
-import com.samsung.android.sdk.health.data.helper.SdkVersion
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.time.Duration
 
 /**
  * ROLE : SamsungHealthPlugin
@@ -80,6 +76,8 @@ class SamsungHealthPlugin(
         viewModelFactory = SamsungHealthViewModelFactory(samsungHealthManager)
     }
 
+//    
+
     @Composable
     override fun renderUI() {
         val scope = rememberCoroutineScope()
@@ -89,12 +87,11 @@ class SamsungHealthPlugin(
         val viewModel: SamsungHealthMainViewModel = viewModel(factory = viewModelFactory)
         val uiState by viewModel.uiState.collectAsState()
 
-        // 초기 권한 확인 및 처리
         LaunchedEffect(Unit) {
             scope.launch {
                 val result = samsungHealthManager.checkPermissionsAndRun(
                     context,
-                    0 // 초기 액티비티 ID
+                    0
                 ) {
                     permissionGranted = true
                 }
@@ -102,7 +99,6 @@ class SamsungHealthPlugin(
             }
         }
 
-        // 권한이 부여되면 데이터 로드
         LaunchedEffect(permissionGranted) {
             if (permissionGranted) {
                 viewModel.loadHeartRateData()
@@ -113,80 +109,67 @@ class SamsungHealthPlugin(
                 viewModel.loadSkeletalMuscleMassData()
                 viewModel.loadWeightData()
                 viewModel.loadExerciseData()
-                // 다른 데이터 로드 메서드 추가 가능
-                // viewModel.loadStepData()
-                // viewModel.loadSleepData()
-                // 등등...
             }
         }
 
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.padding(20.dp)
             ) {
-                Text(
-                    text = "Samsung Health",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                // 헤더
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Samsung Health",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-                IconButton(onClick = {
-                    scope.launch {
-                        samsungHealthManager.initSamsungHealthConnection(context)
+                Spacer(modifier = Modifier.height(24.dp))
+
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.error != null -> ErrorScreen(message = uiState.error)
+                    !permissionGranted -> {
+                        Text(
+                            text = "Samsung Health 권한을 허용해주세요",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "권한 요청"
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "SDK 버전: ${SdkVersion.getVersionName()}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            when {
-                uiState.isLoading -> LoadingScreen()
-                uiState.error != null -> ErrorScreen(message = uiState.error)
-                !permissionGranted -> {
-                    Text(
-                        text = "Samsung Health 권한을 허용해주세요",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                else -> {
-                    // 개요 섹션
-                    Text(
-                        text = "개요",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    HealthDataOverview(
-                        heartRate = uiState.heartRate,
-                        sleep = uiState.sleep,
-                        step = uiState.step,
-                        bloodPressure = uiState.bloodPressure,
-                        onHeartRateClick = {
-                            viewModel.runWithPermissions(
-                                context,
-                                AppConstants.HEART_RATE_ACTIVITY
-                            ) {
-                                viewModel.loadHeartRateData()
-                            }
+                    else -> {
+                        // 건강 데이터 요약
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "건강 데이터 요약",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            // 동기화 시간 등 추가 가능
                         }
-                    )
 
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        ModernHealthDataOverview(
+                            sleepSessions = uiState.sleep,
+                            steps = uiState.step,
+                            weights = uiState.weight,
+                            bloodPressure = uiState.bloodPressure,
+                            bodyFat = uiState.bodyFat,
+                            heartRate = uiState.heartRate,
+                            exercise = uiState.exercise,
+                        )
+                    }
                 }
             }
         }
@@ -209,124 +192,154 @@ private fun ErrorScreen(message: String?) {
 }
 
 @Composable
-fun HealthDataOverview(
-    heartRate: List<HeartRateData>,
-    sleep: List<SleepSessionData>,
-    step: List<StepData>,
+fun ModernHealthDataOverview(
+    sleepSessions: List<SleepSessionData>,
+    steps: List<StepData>,
+    weights: List<WeightData>,
     bloodPressure: List<BloodPressureData>,
-    onHeartRateClick: () -> Unit,
+    bodyFat: List<BodyFatData>,
+    heartRate: List<HeartRateData>,
+    exercise: List<ExerciseData>,
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        modifier = Modifier.height(450.dp)
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(scrollState)
+            .padding(vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item {
-            OverviewCard(
-                title = "심박수",
-                value = if (heartRate.isNotEmpty() && heartRate.last().samples.isNotEmpty()) {
-                    "${heartRate.last().samples.last().beatsPerMinute} BPM"
-                } else "기록 없음",
-                description = if (heartRate.isNotEmpty()) {
-                    "최근: ${DateTimeUtils.formatDateTime(heartRate.last().startTime)}"
-                } else "기록을 불러오려면 클릭하세요",
-                onClick = onHeartRateClick
-            )
-        }
-        item {
-            OverviewCard(
-                title = "수면",
-                value = if (sleep.isNotEmpty()) {
-                    "${sleep.size} 세션"
-                } else "기록 없음",
-                description = if (sleep.isNotEmpty()) {
-                    "최근: ${DateTimeUtils.formatDateTime(sleep.first().startTime)}"
-                } else "기록을 불러오려면 클릭하세요",
-                onClick = { /* TODO: 수면 데이터 클릭 시 동작 */ }
-            )
-        }
-        item {
-            OverviewCard(
-                title = "걸음 수",
-                value = if (step.isNotEmpty()) {
-                    "${step.last().stepCount} 걸음"
-                } else "기록 없음",
-                description = if (step.isNotEmpty()) {
-                    "최근: ${DateTimeUtils.formatDateTime(step.first().startTime)}"
-                } else "기록을 불러오려면 클릭하세요",
-                onClick = { /* TODO: 걸음 수 데이터 클릭 시 동작 */ }
-            )
-        }
-        item {
-            OverviewCard(
-                title = "혈압",
-                value = if (bloodPressure.isNotEmpty()) {
-                    "${bloodPressure.last().systolic}~${bloodPressure.last().diastolic} 걸음"
-                } else "기록 없음",
-                description = "기록을 불러오려면 클릭하세요",
-                onClick = { /* TODO: 혈압 데이터 클릭 시 동작 */ }
-            )
-        }
+        // 건강 데이터를 세로로 한 줄씩 표시
+        MinimalHealthDataItem(
+            title = "걸음",
+            value = "${steps.sumOf { it.stepCount }}",
+            suffix = "steps",
+            icon = "👣",
+            color = Color(0xFF4CAF50)
+        )
+
+        MinimalHealthDataItem(
+            title = "수면",
+            value = if (sleepSessions.isNotEmpty()) {
+                val duration = sleepSessions.last().duration
+                "${duration?.toMinutes()?.div(60)}h ${duration?.toMinutes()?.rem(60)}m"
+            } else "0h",
+            icon = "😴",
+            color = Color(0xFF2196F3)
+        )
+
+        MinimalHealthDataItem(
+            title = "혈압",
+            value = if (bloodPressure.isNotEmpty()) {
+                "${bloodPressure.last().systolic}/${bloodPressure.last().diastolic}"
+            } else "-",
+            suffix = "mmHg",
+            icon = "❤️",
+            color = Color(0xFFE53935)
+        )
+
+        MinimalHealthDataItem(
+            title = "운동",
+            value = if (exercise.isNotEmpty()) {
+                "${Duration.between(exercise.last().startTime, exercise.last().endTime).toMinutes()}"
+            } else "-",
+            suffix = "분",
+            icon = "🏃",
+            color = Color(0xFF795548)
+        )
+
+        MinimalHealthDataItem(
+            title = "심박수",
+            value = if (heartRate.isNotEmpty()) {
+                "${heartRate.last().samples.firstOrNull()?.beatsPerMinute ?: "-"}"
+            } else "-",
+            suffix = "bpm",
+            icon = "💓",
+            color = Color(0xFFE91E63)
+        )
+
+        MinimalHealthDataItem(
+            title = "체중",
+            value = if (weights.isNotEmpty()) {
+                String.format("%.1f", weights.last().getWeightInKg())
+            } else "-",
+            suffix = "kg",
+            icon = "⚖️",
+            color = Color(0xFF3F51B5)
+        )
+
+        MinimalHealthDataItem(
+            title = "체지방",
+            value = if (bodyFat.isNotEmpty()) {
+                String.format("%.2f", bodyFat.last().bodyFatPercentage)
+            } else "-",
+            suffix = "%",
+            icon = "📊",
+            color = Color(0xFF009688)
+        )
     }
 }
 
 @Composable
-private fun OverviewCard(
+fun MinimalHealthDataItem(
     title: String,
     value: String,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    suffix: String = "",
+    icon: String,
+    color: Color
 ) {
-    Card(
-        modifier = modifier
-            .height(180.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-        ),
-        elevation = CardDefaults.cardElevation(0.dp),
-        shape = MaterialTheme.shapes.large,
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-        )
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.background,
+        shadowElevation = 0.dp
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // 아이콘 영역
+            Text(
+                text = icon,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // 제목 영역
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                    letterSpacing = 0.5.sp
-                )
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 값 영역
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.5).sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = color
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+
+            if (suffix.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(2.dp))
                 Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        letterSpacing = 0.sp
-                    )
+                    text = suffix,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = color.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(bottom = 1.dp)
                 )
             }
         }
     }
+
+    Divider(
+        modifier = Modifier.fillMaxWidth(),
+        thickness = 0.5.dp,
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+    )
 }
