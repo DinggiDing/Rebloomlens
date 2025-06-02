@@ -2,6 +2,7 @@ package com.hdil.rebloomlens.sensor_plugins.health_connect
 
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,7 @@ import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.model.WeightData
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.common.utils.DateTimeUtils
+import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepsList
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -69,129 +71,283 @@ class HealthConnectPlugin(
 
     @Composable
     override fun renderUI() {
-        val scope = rememberCoroutineScope()
-        var permissionGranted by remember { mutableStateOf(false) }
 
-        val requestPermissions = rememberLauncherForActivityResult(
-            contract = healthConnectManager.getPermissionContract()
-        ) { granted ->
-            scope.launch {
-                permissionGranted = granted.containsAll(healthConnectManager.permissions)
+        // 간단한 상태 관리로 내부 화면 전환 구현 (NavController 대신)
+        var currentScreen by remember { mutableStateOf("main") }
+
+        when (currentScreen) {
+            "main" -> MainContent(
+                viewModelFactory = viewModelFactory,
+                healthConnectManager = healthConnectManager,
+                onNavigateToStepsList = { currentScreen = "steps_list" }
+            )
+            "steps_list" -> {
+                val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
+                val uiState by viewModel.uiState.collectAsState()
+                StepsList(steps = uiState.steps)
             }
         }
 
-        val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
-        val uiState by viewModel.uiState.collectAsState()
-        val lastSyncTime by viewModel.lastSyncTime.collectAsState()
 
-        LaunchedEffect(Unit) {
-            scope.launch {
-                healthConnectManager.checkPermissionsAndRun(requestPermissions) {
-                    permissionGranted = true
-                }
+//        val scope = rememberCoroutineScope()
+//        var permissionGranted by remember { mutableStateOf(false) }
+//
+//        val requestPermissions = rememberLauncherForActivityResult(
+//            contract = healthConnectManager.getPermissionContract()
+//        ) { granted ->
+//            scope.launch {
+//                permissionGranted = granted.containsAll(healthConnectManager.permissions)
+//            }
+//        }
+//
+//        val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
+//        val uiState by viewModel.uiState.collectAsState()
+//        val lastSyncTime by viewModel.lastSyncTime.collectAsState()
+//
+//        LaunchedEffect(Unit) {
+//            scope.launch {
+//                healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+//                    permissionGranted = true
+//                }
+//            }
+//        }
+//
+//        LaunchedEffect(permissionGranted) {
+//            if (permissionGranted) {
+//                viewModel.loadSleepData()
+//                viewModel.loadStepData()
+//                viewModel.loadWeightData()
+//                viewModel.loadBloodGlucoseData()
+//                viewModel.loadBloodPressureData()
+//                viewModel.loadBodyFatData()
+//                viewModel.loadHeartRateData()
+//                viewModel.loadExerciseData()
+//                viewModel.updateLastSyncTime()
+//            }
+//        }
+//
+//        Surface(
+//            modifier = Modifier.fillMaxWidth(),
+//            color = MaterialTheme.colorScheme.surfaceContainerLow,
+//            shape = RoundedCornerShape(16.dp)
+//        ) {
+//            Column(
+//                modifier = Modifier.padding(20.dp)
+//            ) {
+//                // 헤더 섹션
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+////                    Spacer(modifier = Modifier.width(16.dp))
+//
+//                    Column {
+//                        Text(
+//                            text = "Health Connect",
+//                            style = MaterialTheme.typography.headlineSmall,
+//                            fontWeight = FontWeight.Bold
+//                        )
+//                        Text(
+//                            text = if (permissionGranted) "✅ Health Connect 권한 허용됨" else "❌ Health Connect 권한 필요",
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            color = MaterialTheme.colorScheme.onSurfaceVariant
+//                        )
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(24.dp))
+//
+//                if (!permissionGranted) {
+//                    PermissionRequestCard(
+//                        onRequestClick = {
+//                            scope.launch {
+//                                healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+//                                    permissionGranted = true
+//                                }
+//                            }
+//                        }
+//                    )
+//                } else {
+//                    when {
+//                        uiState.isLoading -> LoadingScreen()
+//                        uiState.error != null -> ErrorScreen(message = uiState.error)
+//                        else -> {
+//                            // 마지막 동기화 정보
+//                            Row(
+//                                modifier = Modifier.fillMaxWidth(),
+//                                horizontalArrangement = Arrangement.SpaceBetween,
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Text(
+//                                    text = "건강 데이터 요약",
+//                                    style = MaterialTheme.typography.titleMedium,
+//                                    fontWeight = FontWeight.Bold
+//                                )
+//
+//                                AssistChip(
+//                                    onClick = { },
+//                                    shape = RoundedCornerShape(8.dp),
+//                                    colors = AssistChipDefaults.assistChipColors(
+//                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+//                                    ),
+//                                    label = {
+//                                        Text(
+//                                            text = "마지막 동기화: ${lastSyncTime?.let { DateTimeUtils.formatDateTime(it) } ?: "없음"}",
+//                                            style = MaterialTheme.typography.labelSmall,
+//                                        )
+//                                    }
+//                                )
+//                            }
+//
+//                            Spacer(modifier = Modifier.height(16.dp))
+//
+//                            ModernHealthDataOverview(
+//                                sleepSessions = uiState.sleepSessions,
+//                                steps = uiState.steps,
+//                                weights = uiState.weight,
+//                                bloodGlucose = uiState.bloodGlucose,
+//                                bloodPressure = uiState.bloodPressure,
+//                                bodyFat = uiState.bodyFat,
+//                                heartRate = uiState.heartRate,
+//                                exercise = uiState.exercise
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+    }
+}
+
+@Composable
+private fun MainContent(
+    viewModelFactory: HealthConnectViewModelFactory,
+    healthConnectManager: HealthConnectManager,
+    onNavigateToStepsList: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    var permissionGranted by remember { mutableStateOf(false) }
+
+    val requestPermissions = rememberLauncherForActivityResult(
+        contract = healthConnectManager.getPermissionContract()
+    ) { granted ->
+        scope.launch {
+            permissionGranted = granted.containsAll(healthConnectManager.permissions)
+        }
+    }
+
+    val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
+    val uiState by viewModel.uiState.collectAsState()
+    val lastSyncTime by viewModel.lastSyncTime.collectAsState()
+
+    // 권한 체크 및 데이터 로딩 로직
+    LaunchedEffect(Unit) {
+        scope.launch {
+            healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+                permissionGranted = true
             }
         }
+    }
 
-        LaunchedEffect(permissionGranted) {
-            if (permissionGranted) {
-                viewModel.loadSleepData()
-                viewModel.loadStepData()
-                viewModel.loadWeightData()
-                viewModel.loadBloodGlucoseData()
-                viewModel.loadBloodPressureData()
-                viewModel.loadBodyFatData()
-                viewModel.loadHeartRateData()
-                viewModel.loadExerciseData()
-                viewModel.updateLastSyncTime()
-            }
+    LaunchedEffect(permissionGranted) {
+        if (permissionGranted) {
+            viewModel.loadSleepData()
+            viewModel.loadStepData()
+            viewModel.loadWeightData()
+            viewModel.loadBloodGlucoseData()
+            viewModel.loadBloodPressureData()
+            viewModel.loadBodyFatData()
+            viewModel.loadHeartRateData()
+            viewModel.loadExerciseData()
+            viewModel.updateLastSyncTime()
         }
+    }
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            shape = RoundedCornerShape(16.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
+            // 헤더 섹션
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 헤더 섹션
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-//                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column {
-                        Text(
-                            text = "Health Connect",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = if (permissionGranted) "✅ Health Connect 권한 허용됨" else "❌ Health Connect 권한 필요",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                Column {
+                    Text(
+                        text = "Health Connect",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (permissionGranted) "✅ Health Connect 권한 허용됨" else "❌ Health Connect 권한 필요",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                if (!permissionGranted) {
-                    PermissionRequestCard(
-                        onRequestClick = {
-                            scope.launch {
-                                healthConnectManager.checkPermissionsAndRun(requestPermissions) {
-                                    permissionGranted = true
-                                }
+            if (!permissionGranted) {
+                PermissionRequestCard(
+                    onRequestClick = {
+                        scope.launch {
+                            healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+                                permissionGranted = true
                             }
                         }
-                    )
-                } else {
-                    when {
-                        uiState.isLoading -> LoadingScreen()
-                        uiState.error != null -> ErrorScreen(message = uiState.error)
-                        else -> {
-                            // 마지막 동기화 정보
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "건강 데이터 요약",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
+                    }
+                )
+            } else {
+                when {
+                    uiState.isLoading -> LoadingScreen()
+                    uiState.error != null -> ErrorScreen(message = uiState.error)
+                    else -> {
+                        // 마지막 동기화 정보
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "건강 데이터 요약",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
 
-                                AssistChip(
-                                    onClick = { },
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                    ),
-                                    label = {
-                                        Text(
-                                            text = "마지막 동기화: ${lastSyncTime?.let { DateTimeUtils.formatDateTime(it) } ?: "없음"}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    }
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            ModernHealthDataOverview(
-                                sleepSessions = uiState.sleepSessions,
-                                steps = uiState.steps,
-                                weights = uiState.weight,
-                                bloodGlucose = uiState.bloodGlucose,
-                                bloodPressure = uiState.bloodPressure,
-                                bodyFat = uiState.bodyFat,
-                                heartRate = uiState.heartRate,
-                                exercise = uiState.exercise
+                            AssistChip(
+                                onClick = { },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                ),
+                                label = {
+                                    Text(
+                                        text = "마지막 동기화: ${lastSyncTime?.let { DateTimeUtils.formatDateTime(it) } ?: "없음"}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // onNavigateToStepsList 전달
+                        ModernHealthDataOverview(
+                            onNavigateToStepsList = onNavigateToStepsList,
+                            sleepSessions = uiState.sleepSessions,
+                            steps = uiState.steps,
+                            weights = uiState.weight,
+                            bloodGlucose = uiState.bloodGlucose,
+                            bloodPressure = uiState.bloodPressure,
+                            bodyFat = uiState.bodyFat,
+                            heartRate = uiState.heartRate,
+                            exercise = uiState.exercise
+                        )
                     }
                 }
             }
@@ -297,6 +453,7 @@ private fun ErrorScreen(message: String?) {
 
 @Composable
 fun ModernHealthDataOverview(
+    onNavigateToStepsList: () -> Unit,
     sleepSessions: List<SleepSessionData>,
     steps: List<StepData>,
     weights: List<WeightData>,
@@ -321,7 +478,8 @@ fun ModernHealthDataOverview(
             value = "${steps.sumOf { it.stepCount }}",
             suffix = "steps",
             icon = "👣",
-            color = Color(0xFF4CAF50)
+            color = Color(0xFF4CAF50),
+            onClick = onNavigateToStepsList // 클릭 시 StepsList로 이동
         )
 
         MinimalHealthDataItem(
@@ -402,12 +560,14 @@ fun MinimalHealthDataItem(
     value: String,
     suffix: String = "",
     icon: String,
-    color: Color
+    color: Color,
+    onClick: (() -> Unit)? = null
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.background,
-        shadowElevation = 0.dp
+        shadowElevation = 0.dp,
+        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() }
     ) {
         Row(
             modifier = Modifier

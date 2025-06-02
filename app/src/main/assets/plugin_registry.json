@@ -30,10 +30,7 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "수면점수?"
-            },
-            {
-              "title": "수면질"
+              "title": "총 수면 시간?"
             }
           ]
         },
@@ -41,20 +38,8 @@
           "plugin_id": "likert_scale",
           "instances": [
             {
-              "title": "수면점수",
-              "scale": [" ~ 50", "51 ~ 70", "71 ~ 90", "91 ~ 100"]
-            },
-            {
-              "title": "수면질",
+              "title": "숙면 정도",
               "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
-            }
-          ]
-        },
-        {
-          "plugin_id": "voice_input",
-          "instances": [
-            {
-              "title": "오늘 수면 어땠어요?"
             }
           ]
         }
@@ -67,7 +52,7 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "오늘 식사 만족도는?"
+              "title": "오늘의 식단은?"
             }
           ]
         },
@@ -75,11 +60,15 @@
           "plugin_id": "likert_scale",
           "instances": [
             {
-              "title": "채소/과일 섭취 만족도",
+              "title": "야채/과일 섭취 목표 달성 정도",
               "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
             },
             {
-              "title": "단백질 섭취량",
+              "title": "단백질 섭취 목표 달성 정도",
+              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+            },
+            {
+              "title": "제한하고 싶은 식습관 유지 정도",
               "scale": ["적게 섭취", "적당량", "많이 섭취"]
             }
           ]
@@ -95,13 +84,13 @@
       ]
     },
     {
-      "category": "Mental Health",
+      "category": "Mental Status",
       "plugins": [
         {
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "오늘 감정을 기록해보세요"
+              "title": "EORTC QLQ-BR23 (0-100) 점수는?"
             }
           ]
         },
@@ -109,20 +98,12 @@
           "plugin_id": "likert_scale",
           "instances": [
             {
-              "title": "스트레스 정도",
-              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+              "title": "PHQ8 (DSM-5기준)",
+              "scale": ["Not at all", "Several days", "More than half the days", "Nearly everyday"]
             },
             {
-              "title": "불안감 수준",
+              "title": "GAD7 (DSM-5기준)",
               "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
-            }
-          ]
-        },
-        {
-          "plugin_id": "voice_input",
-          "instances": [
-            {
-              "title": "오늘 정신 건강 상태는 어땠어요?"
             }
           ]
         }

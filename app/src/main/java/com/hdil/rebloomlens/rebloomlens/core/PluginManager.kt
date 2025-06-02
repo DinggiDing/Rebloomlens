@@ -357,6 +357,7 @@ object PluginManager {
                     Text("Invalid Plugin")
                 }
             }
+
         }
     }
 }

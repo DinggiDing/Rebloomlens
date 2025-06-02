@@ -62,6 +62,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 
+
     // health connect
     implementation(libs.healthconnect)
 }
