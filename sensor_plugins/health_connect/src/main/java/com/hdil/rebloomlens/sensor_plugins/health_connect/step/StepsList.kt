@@ -36,55 +36,6 @@ import java.time.format.DateTimeFormatter
  * @param steps The list of step data to display.
  */
 
-//@Composable
-//fun StepsList(steps: List<StepData>) {
-//    Column {
-//        Text(
-//            text = "걸음 수",
-//            style = MaterialTheme.typography.titleMedium
-//        )
-//        LazyColumn {
-//            items(steps) { step ->
-//                StepDataItem(step = step)
-//            }
-//        }
-//    }
-//}
-//
-//@Composable
-//fun StepDataItem(step: StepData) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(8.dp),
-//        elevation = CardDefaults.cardElevation(4.dp)
-//    ) {
-//        Column(
-//            modifier = Modifier.padding(16.dp)
-//        ) {
-//            Text(
-//                text = "${DateTimeUtils.formatDateTime(step.startTime)} 걸음 기록",
-//                style = MaterialTheme.typography.titleMedium
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-//
-//            Text(
-//                text = "걸음 수: ${step.stepCount}걸음",
-//                style = MaterialTheme.typography.bodyLarge
-//            )
-//
-//            Text(
-//                text = "시작: ${DateTimeUtils.formatDateTime(step.startTime)}",
-//                style = MaterialTheme.typography.bodyMedium
-//            )
-//            Text(
-//                text = "종료: ${DateTimeUtils.formatDateTime(step.endTime)}",
-//                style = MaterialTheme.typography.bodyMedium
-//            )
-//        }
-//    }
-//}
-
 
 @Composable
 fun StepsList(steps: List<StepData>) {

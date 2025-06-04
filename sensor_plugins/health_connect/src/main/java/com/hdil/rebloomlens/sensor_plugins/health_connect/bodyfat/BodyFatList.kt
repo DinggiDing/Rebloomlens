@@ -1,4 +1,4 @@
-package com.hdil.rebloomlens.sensor_plugins.health_connect.weight
+package com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,35 +23,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hdil.rebloomlens.common.model.WeightData
+import com.hdil.rebloomlens.common.model.BodyFatData
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// ROLE : This file is responsible for displaying a list of weight data.
-/**
- * Displays a list of weight data.
- *
- * @param weight The list of weight data to display.
- */
-
 @Composable
-fun WeightList(weights: List<WeightData>) {
-    // 일자별 데이터 그룹화
-    val dailyWeights = remember(weights) {
-        weights.groupBy {
+fun BodyFatList(bodyFats: List<BodyFatData>) {
+    val dailyBodyFats = remember(bodyFats) {
+        bodyFats.groupBy {
             Instant.ofEpochMilli(it.time.toEpochMilli()).atZone(ZoneId.systemDefault()).toLocalDate()
         }.mapValues { entry ->
-            entry.value.map { it.weight }
+            entry.value.map { it.bodyFatPercentage }
         }.toList().sortedByDescending { it.first }
     }
 
-    // 통계
-    val avgWeight = if (dailyWeights.isNotEmpty()) dailyWeights.flatMap { it.second }.map { it.inKilograms }.average() else 0.0
-    val maxWeight = dailyWeights.maxOfOrNull { it.second.maxOfOrNull { w -> w.inKilograms } ?: 0.0 } ?: 0.0
-    val minWeight = if (dailyWeights.isNotEmpty()) dailyWeights.flatMap { it.second }.map { it.inKilograms }.minOrNull() ?: Double.MAX_VALUE else 0.0
-    val lastSynced = weights.maxByOrNull { it.time }?.time ?: Instant.now()
+    val avgBodyFat = if (dailyBodyFats.isNotEmpty()) dailyBodyFats.flatMap { it.second }.average().toDouble() else 0.0
+    val maxBodyFat = if (dailyBodyFats.isNotEmpty()) dailyBodyFats.flatMap { it.second }.maxOrNull() ?: 0.0 else 0.0
+    val minBodyFat = if (dailyBodyFats.isNotEmpty()) dailyBodyFats.flatMap { it.second}.minOrNull() ?: 0.0 else 0.0
+    val lastSynced = bodyFats.maxByOrNull { it.time }?.time ?: Instant.now()
 
     val scrollState = rememberScrollState()
 
@@ -71,7 +62,7 @@ fun WeightList(weights: List<WeightData>) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "체중 데이터",
+                    text = "체지방 데이터",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -86,7 +77,7 @@ fun WeightList(weights: List<WeightData>) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "체중 요약",
+                    text = "체지방 요약",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -108,18 +99,18 @@ fun WeightList(weights: List<WeightData>) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                WeightStatItem(value = avgWeight, label = "평균")
-                WeightStatItem(value = maxWeight, label = "최대")
-                WeightStatItem(value = minWeight, label = "최소")
+                BodyFatStatItem(value = avgBodyFat, label = "평균")
+                BodyFatStatItem(value = maxBodyFat, label = "최대")
+                BodyFatStatItem(value = minBodyFat, label = "최소")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // 일별 데이터
-            dailyWeights.forEach { (date, weightAvg) ->
-                MinimalWeightDataItem(
+            dailyBodyFats.forEach { (date, bodyFatAvg) ->
+                MinimalBodyFatDataItem(
                     date = date,
-                    weight = weightAvg.firstOrNull()?.inKilograms ?: 0.0
+                    bodyFat = bodyFatAvg.firstOrNull()?.toDouble() ?: 0.0
                 )
             }
         }
@@ -127,7 +118,7 @@ fun WeightList(weights: List<WeightData>) {
 }
 
 @Composable
-fun WeightStatItem(value: Double, label: String) {
+fun BodyFatStatItem(value: Double, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "%.1f".format(value),
@@ -135,7 +126,7 @@ fun WeightStatItem(value: Double, label: String) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp
             ),
-            color = Color(0xFF3F51B5)
+            color = Color(0xFF009688)
         )
         Text(
             text = label,
@@ -146,7 +137,7 @@ fun WeightStatItem(value: Double, label: String) {
 }
 
 @Composable
-fun MinimalWeightDataItem(date: LocalDate, weight: Double) {
+fun MinimalBodyFatDataItem(date: LocalDate, bodyFat: Double) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.background,
@@ -159,7 +150,7 @@ fun MinimalWeightDataItem(date: LocalDate, weight: Double) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "⚖️",
+                text = "📊️",
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -170,16 +161,16 @@ fun MinimalWeightDataItem(date: LocalDate, weight: Double) {
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "%.1f".format(weight),
+                text = "%.2f".format(bodyFat),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3F51B5)
+                color = Color(0xFF009688)
             )
             Spacer(modifier = Modifier.width(2.dp))
             Text(
-                text = "kg",
+                text = "%",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF3F51B5).copy(alpha = 0.7f),
+                color = Color(0xFF009688).copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 1.dp)
             )
         }

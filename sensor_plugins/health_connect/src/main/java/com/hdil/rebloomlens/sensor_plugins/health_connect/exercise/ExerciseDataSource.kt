@@ -5,7 +5,6 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.hdil.rebloomlens.common.model.ExerciseData
-import com.hdil.rebloomlens.common.utils.Logger
 import java.time.Instant
 
 class ExerciseDataSource(
@@ -25,7 +24,7 @@ class ExerciseDataSource(
 
         val exerciseSessions = healthConnectClient.readRecords(exerciseRequest)
         exerciseSessions.records.forEach { session ->
-            Logger.e("HealthConnect_Exercise: ${session.startTime}~${session.endTime}, Type: ${session.exerciseType.toString()}")
+//            Logger.e("HealthConnect_Exercise: ${session.startTime}~${session.endTime}, Type: ${session.exerciseType.toString()}")
 
             sessions.add(
                 ExerciseData(

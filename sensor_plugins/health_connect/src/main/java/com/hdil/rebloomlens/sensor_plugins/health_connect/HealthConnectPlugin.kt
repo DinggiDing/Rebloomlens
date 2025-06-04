@@ -1,7 +1,9 @@
 package com.hdil.rebloomlens.sensor_plugins.health_connect
 
 import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -24,6 +28,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,9 +44,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.health.connect.client.HealthConnectClient
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.hdil.rebloomlens.common.model.BloodGlucoseData
 import com.hdil.rebloomlens.common.model.BloodPressureData
 import com.hdil.rebloomlens.common.model.BodyFatData
@@ -51,9 +62,14 @@ import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.model.WeightData
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.common.utils.DateTimeUtils
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat.BodyFatList
+import com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate.HeartRateList
+import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionsList
 import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepsList
+import com.hdil.rebloomlens.sensor_plugins.health_connect.weight.WeightList
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.time.Instant
 
 class HealthConnectPlugin(
     override val pluginId: String,
@@ -72,19 +88,85 @@ class HealthConnectPlugin(
     @Composable
     override fun renderUI() {
 
-        // 간단한 상태 관리로 내부 화면 전환 구현 (NavController 대신)
-        var currentScreen by remember { mutableStateOf("main") }
+        val navController = rememberNavController()
 
-        when (currentScreen) {
-            "main" -> MainContent(
-                viewModelFactory = viewModelFactory,
-                healthConnectManager = healthConnectManager,
-                onNavigateToStepsList = { currentScreen = "steps_list" }
-            )
-            "steps_list" -> {
-                val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
-                val uiState by viewModel.uiState.collectAsState()
-                StepsList(steps = uiState.steps)
+        // 공통으로 사용할 ViewModel 생성
+        val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
+        val uiState by viewModel.uiState.collectAsState()
+        val lastSyncTime by viewModel.lastSyncTime.collectAsState()
+
+        // 권한 및 데이터 로딩 로직 추가
+        val scope = rememberCoroutineScope()
+        var permissionGranted by remember { mutableStateOf(false) }
+
+        val requestPermissions = rememberLauncherForActivityResult(
+            contract = healthConnectManager.getPermissionContract()
+        ) { granted ->
+            scope.launch {
+                permissionGranted = granted.containsAll(healthConnectManager.permissions)
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            healthConnectManager.checkPermissionsAndRun(requestPermissions) {
+                permissionGranted = true
+            }
+        }
+
+        LaunchedEffect(permissionGranted) {
+            if (permissionGranted) {
+                viewModel.loadSleepData()
+                viewModel.loadStepData()
+                viewModel.loadWeightData()
+                viewModel.loadBloodGlucoseData()
+                viewModel.loadBloodPressureData()
+                viewModel.loadBodyFatData()
+                viewModel.loadHeartRateData()
+                viewModel.loadExerciseData()
+                viewModel.updateLastSyncTime()
+            }
+        }
+
+        NavHost(navController, startDestination = "main") {
+            composable("main") {
+                MainContent(
+                    viewModel = viewModel,
+                    uiState = uiState,
+                    lastSyncTime = lastSyncTime,
+                    healthConnectManager = healthConnectManager,
+                    permissionGranted = permissionGranted,
+                    requestPermissions = requestPermissions,
+                    onNavigateToStepsList = { navController.navigate("steps_list") },
+                    onNavigateToWeightList = { navController.navigate("weight_list") },
+                    onNavigateToHeartRateList = { navController.navigate("heartRate_list") },
+                    onNavigateToBodyFatList = { navController.navigate("bodyFat_list") },
+                    onNavigateToSleepList = { navController.navigate("sleep_list") },
+                )
+            }
+            composable("steps_list") {
+                StepsList(
+                    steps = uiState.steps,
+                )
+            }
+            composable("weight_list") {
+                WeightList(
+                    weights = uiState.weight,
+                )
+            }
+            composable("heartRate_list") {
+                HeartRateList(
+                    heartRates = uiState.heartRate,
+                )
+            }
+            composable("bodyFat_list") {
+                BodyFatList(
+                    bodyFats = uiState.bodyFat,
+                )
+            }
+            composable("sleep_list") {
+                SleepSessionsList(
+                    sessions = uiState.sleepSessions,
+                )
             }
         }
     }
@@ -92,47 +174,20 @@ class HealthConnectPlugin(
 
 @Composable
 private fun MainContent(
-    viewModelFactory: HealthConnectViewModelFactory,
+    viewModel: HealthConnectViewModel,
+    uiState: HealthConnectUiState,
+    lastSyncTime: Instant?,
     healthConnectManager: HealthConnectManager,
-    onNavigateToStepsList: () -> Unit
+    permissionGranted: Boolean,
+    requestPermissions: ActivityResultLauncher<Set<String>>,
+    onNavigateToStepsList: () -> Unit,
+    onNavigateToWeightList: () -> Unit,
+    onNavigateToHeartRateList: () -> Unit,
+    onNavigateToBodyFatList: () -> Unit,
+    onNavigateToSleepList: () -> Unit,
+    context: Context = LocalContext.current
 ) {
     val scope = rememberCoroutineScope()
-    var permissionGranted by remember { mutableStateOf(false) }
-
-    val requestPermissions = rememberLauncherForActivityResult(
-        contract = healthConnectManager.getPermissionContract()
-    ) { granted ->
-        scope.launch {
-            permissionGranted = granted.containsAll(healthConnectManager.permissions)
-        }
-    }
-
-    val viewModel: HealthConnectViewModel = viewModel(factory = viewModelFactory)
-    val uiState by viewModel.uiState.collectAsState()
-    val lastSyncTime by viewModel.lastSyncTime.collectAsState()
-
-    // 권한 체크 및 데이터 로딩 로직
-    LaunchedEffect(Unit) {
-        scope.launch {
-            healthConnectManager.checkPermissionsAndRun(requestPermissions) {
-                permissionGranted = true
-            }
-        }
-    }
-
-    LaunchedEffect(permissionGranted) {
-        if (permissionGranted) {
-            viewModel.loadSleepData()
-            viewModel.loadStepData()
-            viewModel.loadWeightData()
-            viewModel.loadBloodGlucoseData()
-            viewModel.loadBloodPressureData()
-            viewModel.loadBodyFatData()
-            viewModel.loadHeartRateData()
-            viewModel.loadExerciseData()
-            viewModel.updateLastSyncTime()
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -159,6 +214,17 @@ private fun MainContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+
+                IconButton(onClick = {
+                    val settingsIntent = Intent()
+                    settingsIntent.action = HealthConnectClient.ACTION_HEALTH_CONNECT_SETTINGS
+                    context.startActivity(settingsIntent)
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "권한 요청"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -168,7 +234,15 @@ private fun MainContent(
                     onRequestClick = {
                         scope.launch {
                             healthConnectManager.checkPermissionsAndRun(requestPermissions) {
-                                permissionGranted = true
+                                viewModel.loadSleepData()
+                                viewModel.loadStepData()
+                                viewModel.loadWeightData()
+                                viewModel.loadBloodGlucoseData()
+                                viewModel.loadBloodPressureData()
+                                viewModel.loadBodyFatData()
+                                viewModel.loadHeartRateData()
+                                viewModel.loadExerciseData()
+                                viewModel.updateLastSyncTime()
                             }
                         }
                     }
@@ -210,6 +284,10 @@ private fun MainContent(
                         // onNavigateToStepsList 전달
                         ModernHealthDataOverview(
                             onNavigateToStepsList = onNavigateToStepsList,
+                            onNavigateToWeightList = onNavigateToWeightList,
+                            onNavigateToHeartRateList = onNavigateToHeartRateList,
+                            onNavigateToBodyFatList = onNavigateToBodyFatList,
+                            onNavigateToSleepList = onNavigateToSleepList,
                             sleepSessions = uiState.sleepSessions,
                             steps = uiState.steps,
                             weights = uiState.weight,
@@ -325,6 +403,10 @@ private fun ErrorScreen(message: String?) {
 @Composable
 fun ModernHealthDataOverview(
     onNavigateToStepsList: () -> Unit,
+    onNavigateToWeightList: () -> Unit,
+    onNavigateToHeartRateList: () -> Unit,
+    onNavigateToBodyFatList: () -> Unit,
+    onNavigateToSleepList: () -> Unit,
     sleepSessions: List<SleepSessionData>,
     steps: List<StepData>,
     weights: List<WeightData>,
@@ -346,7 +428,12 @@ fun ModernHealthDataOverview(
         // 건강 데이터를 세로로 한 줄씩 표시
         MinimalHealthDataItem(
             title = "걸음",
-            value = "${steps.sumOf { it.stepCount }}",
+            value = if (steps.isNotEmpty()) {
+                val recentSteps = steps.maxByOrNull { it.startTime }
+                if (recentSteps != null) {
+                    "${recentSteps.stepCount}"
+                } else "0"
+            } else "0",
             suffix = "steps",
             icon = "👣",
             color = Color(0xFF4CAF50),
@@ -360,7 +447,8 @@ fun ModernHealthDataOverview(
                 "${duration?.toMinutes()?.div(60)}h ${duration?.toMinutes()?.rem(60)}m"
             } else "0h",
             icon = "😴",
-            color = Color(0xFF2196F3)
+            color = Color(0xFF2196F3),
+            onClick = onNavigateToSleepList
         )
 
         MinimalHealthDataItem(
@@ -396,21 +484,23 @@ fun ModernHealthDataOverview(
         MinimalHealthDataItem(
             title = "심박수",
             value = if (heartRate.isNotEmpty()) {
-                "${heartRate.last().samples.firstOrNull()?.beatsPerMinute ?: "-"}"
+                "${heartRate.first().samples.firstOrNull()?.beatsPerMinute ?: "-"}"
             } else "-",
             suffix = "bpm",
             icon = "💓",
-            color = Color(0xFFE91E63)
+            color = Color(0xFFE91E63),
+            onClick = onNavigateToHeartRateList
         )
 
         MinimalHealthDataItem(
             title = "체중",
             value = if (weights.isNotEmpty()) {
-                String.format("%.1f", weights.last().getWeightInKg())
+                String.format("%.1f", weights.first().getWeightInKg())
             } else "-",
             suffix = "kg",
             icon = "⚖️",
-            color = Color(0xFF3F51B5)
+            color = Color(0xFF3F51B5),
+            onClick = onNavigateToWeightList
         )
 
         MinimalHealthDataItem(
@@ -420,7 +510,8 @@ fun ModernHealthDataOverview(
             } else "-",
             suffix = "%",
             icon = "📊",
-            color = Color(0xFF009688)
+            color = Color(0xFF009688),
+            onClick = onNavigateToBodyFatList
         )
     }
 }

@@ -32,6 +32,7 @@ class HeartRateDataSource(
                     beatsPerMinute = it.beatsPerMinute.toLong()
                 )
             }
+
             sessions.add(
                 HeartRateData(
                     uid = session.metadata.id,

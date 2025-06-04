@@ -48,6 +48,7 @@ class SleepSessionDataSource(
                 metrics = setOf(SleepSessionRecord.SLEEP_DURATION_TOTAL),
                 timeRangeFilter = sessionTimeFilter
             )
+
             val aggregateResponse = healthConnectClient.aggregate(durationAggregateRequest)
             sessions.add(
                 SleepSessionData(
@@ -68,6 +69,8 @@ class SleepSessionDataSource(
                     }
                 )
             )
+//            Logger.e("HealthConnect_Exercise: ${session.startTime}~${session.endTime}, Type: ${aggregateResponse[SleepSessionRecord.SLEEP_DURATION_TOTAL]}")
+
         }
         return sessions
     }

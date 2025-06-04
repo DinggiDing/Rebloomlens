@@ -1,4 +1,4 @@
-package com.hdil.rebloomlens.sensor_plugins.health_connect.weight
+package com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,35 +23,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hdil.rebloomlens.common.model.WeightData
+import com.hdil.rebloomlens.common.model.HeartRateData
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// ROLE : This file is responsible for displaying a list of weight data.
-/**
- * Displays a list of weight data.
- *
- * @param weight The list of weight data to display.
- */
-
 @Composable
-fun WeightList(weights: List<WeightData>) {
-    // 일자별 데이터 그룹화
-    val dailyWeights = remember(weights) {
-        weights.groupBy {
-            Instant.ofEpochMilli(it.time.toEpochMilli()).atZone(ZoneId.systemDefault()).toLocalDate()
+fun HeartRateList(heartRates: List<HeartRateData>) {
+    val dailyHeartRates = remember(heartRates) {
+        heartRates.groupBy {
+            Instant.ofEpochMilli(it.startTime.toEpochMilli()).atZone(ZoneId.systemDefault()).toLocalDate()
         }.mapValues { entry ->
-            entry.value.map { it.weight }
+            entry.value.map { it.samples.first().beatsPerMinute }.average().toInt()
         }.toList().sortedByDescending { it.first }
     }
 
     // 통계
-    val avgWeight = if (dailyWeights.isNotEmpty()) dailyWeights.flatMap { it.second }.map { it.inKilograms }.average() else 0.0
-    val maxWeight = dailyWeights.maxOfOrNull { it.second.maxOfOrNull { w -> w.inKilograms } ?: 0.0 } ?: 0.0
-    val minWeight = if (dailyWeights.isNotEmpty()) dailyWeights.flatMap { it.second }.map { it.inKilograms }.minOrNull() ?: Double.MAX_VALUE else 0.0
-    val lastSynced = weights.maxByOrNull { it.time }?.time ?: Instant.now()
+    val avgHeartRates = if (dailyHeartRates.isNotEmpty()) dailyHeartRates.map { it.second }.average().toInt() else 0
+    val maxHeartRates = dailyHeartRates.maxOfOrNull { it.second } ?: 0
+    val minHeartRates = if (dailyHeartRates.isNotEmpty()) dailyHeartRates.minOf { it.second } else 0
+    val lasySynced = heartRates.maxByOrNull { it.startTime }?.startTime ?: Instant.now()
 
     val scrollState = rememberScrollState()
 
@@ -61,17 +53,14 @@ fun WeightList(weights: List<WeightData>) {
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .verticalScroll(scrollState)
+            modifier = Modifier.padding(20.dp).verticalScroll(scrollState)
         ) {
-            // 헤더
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "체중 데이터",
+                    text = "심박수 데이터",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -79,14 +68,13 @@ fun WeightList(weights: List<WeightData>) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 동기화 정보
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "체중 요약",
+                    text = "심박수 요약",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -94,7 +82,7 @@ fun WeightList(weights: List<WeightData>) {
                     text = "마지막 동기화: ${
                         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                             .withZone(ZoneId.systemDefault())
-                            .format(lastSynced)
+                            .format(lasySynced)
                     }",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -103,23 +91,21 @@ fun WeightList(weights: List<WeightData>) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 통계
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                WeightStatItem(value = avgWeight, label = "평균")
-                WeightStatItem(value = maxWeight, label = "최대")
-                WeightStatItem(value = minWeight, label = "최소")
+                HeartRateStatItem(value = avgHeartRates, label = "평균")
+                HeartRateStatItem(value = maxHeartRates.toInt(), label = "최대")
+                HeartRateStatItem(value = minHeartRates.toInt(), label = "최소")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 일별 데이터
-            dailyWeights.forEach { (date, weightAvg) ->
-                MinimalWeightDataItem(
+            dailyHeartRates.forEach { (date, heartRateCount) ->
+                MinimalHeartRateDataItem(
                     date = date,
-                    weight = weightAvg.firstOrNull()?.inKilograms ?: 0.0
+                    heartRateCount = heartRateCount.toInt()
                 )
             }
         }
@@ -127,15 +113,15 @@ fun WeightList(weights: List<WeightData>) {
 }
 
 @Composable
-fun WeightStatItem(value: Double, label: String) {
+fun HeartRateStatItem(value: Int, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "%.1f".format(value),
+            text = "%d".format(value),
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp
             ),
-            color = Color(0xFF3F51B5)
+            color = Color(0xFFE91E63)
         )
         Text(
             text = label,
@@ -146,40 +132,37 @@ fun WeightStatItem(value: Double, label: String) {
 }
 
 @Composable
-fun MinimalWeightDataItem(date: LocalDate, weight: Double) {
+fun MinimalHeartRateDataItem(date: LocalDate, heartRateCount: Int) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.background,
         shadowElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "⚖️",
+                text = "💓",
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "%.1f".format(weight),
+                text = "%d".format(heartRateCount),
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF3F51B5)
+                color = Color(0xFFE91E63)
             )
             Spacer(modifier = Modifier.width(2.dp))
             Text(
-                text = "kg",
+                text = "bpm",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF3F51B5).copy(alpha = 0.7f),
+                color = Color(0xFFE91E63).copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 1.dp)
             )
         }
