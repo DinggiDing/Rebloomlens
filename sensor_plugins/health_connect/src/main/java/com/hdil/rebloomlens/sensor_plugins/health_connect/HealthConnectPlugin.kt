@@ -62,7 +62,10 @@ import com.hdil.rebloomlens.common.model.StepData
 import com.hdil.rebloomlens.common.model.WeightData
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.common.utils.DateTimeUtils
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodglucose.BloodGlucoseList
+import com.hdil.rebloomlens.sensor_plugins.health_connect.bloodpressure.BloodPressureList
 import com.hdil.rebloomlens.sensor_plugins.health_connect.bodyfat.BodyFatList
+import com.hdil.rebloomlens.sensor_plugins.health_connect.exercise.ExerciseList
 import com.hdil.rebloomlens.sensor_plugins.health_connect.heartrate.HeartRateList
 import com.hdil.rebloomlens.sensor_plugins.health_connect.sleep.SleepSessionsList
 import com.hdil.rebloomlens.sensor_plugins.health_connect.step.StepsList
@@ -141,6 +144,9 @@ class HealthConnectPlugin(
                     onNavigateToHeartRateList = { navController.navigate("heartRate_list") },
                     onNavigateToBodyFatList = { navController.navigate("bodyFat_list") },
                     onNavigateToSleepList = { navController.navigate("sleep_list") },
+                    onNavigateToExerciseList = { navController.navigate("exercise_list") },
+                    onNavigateToBloodGlucoseList = { navController.navigate("bloodGlucose_list") },
+                    onNavigateToBloodPressureList = { navController.navigate("bloodPressure_list") }
                 )
             }
             composable("steps_list") {
@@ -168,6 +174,21 @@ class HealthConnectPlugin(
                     sessions = uiState.sleepSessions,
                 )
             }
+            composable("exercise_list") {
+                ExerciseList(
+                    exercises = uiState.exercise,
+                )
+            }
+            composable("bloodGlucose_list") {
+                BloodGlucoseList(
+                    bloodGlucoses = uiState.bloodGlucose,
+                )
+            }
+            composable("bloodPressure_list") {
+                BloodPressureList(
+                    bloodPressures = uiState.bloodPressure,
+                )
+            }
         }
     }
 }
@@ -185,6 +206,9 @@ private fun MainContent(
     onNavigateToHeartRateList: () -> Unit,
     onNavigateToBodyFatList: () -> Unit,
     onNavigateToSleepList: () -> Unit,
+    onNavigateToExerciseList: () -> Unit,
+    onNavigateToBloodGlucoseList: () -> Unit,
+    onNavigateToBloodPressureList: () -> Unit,
     context: Context = LocalContext.current
 ) {
     val scope = rememberCoroutineScope()
@@ -288,6 +312,9 @@ private fun MainContent(
                             onNavigateToHeartRateList = onNavigateToHeartRateList,
                             onNavigateToBodyFatList = onNavigateToBodyFatList,
                             onNavigateToSleepList = onNavigateToSleepList,
+                            onNavigateToExerciseList = onNavigateToExerciseList,
+                            onNavigateToBloodGlucoseList = onNavigateToBloodGlucoseList,
+                            onNavigateToBloodPressureList = onNavigateToBloodPressureList,
                             sleepSessions = uiState.sleepSessions,
                             steps = uiState.steps,
                             weights = uiState.weight,
@@ -407,6 +434,9 @@ fun ModernHealthDataOverview(
     onNavigateToHeartRateList: () -> Unit,
     onNavigateToBodyFatList: () -> Unit,
     onNavigateToSleepList: () -> Unit,
+    onNavigateToExerciseList: () -> Unit,
+    onNavigateToBloodGlucoseList: () -> Unit,
+    onNavigateToBloodPressureList: () -> Unit,
     sleepSessions: List<SleepSessionData>,
     steps: List<StepData>,
     weights: List<WeightData>,
@@ -443,7 +473,7 @@ fun ModernHealthDataOverview(
         MinimalHealthDataItem(
             title = "수면",
             value = if (sleepSessions.isNotEmpty()) {
-                val duration = sleepSessions.last().duration
+                val duration = sleepSessions.first().duration
                 "${duration?.toMinutes()?.div(60)}h ${duration?.toMinutes()?.rem(60)}m"
             } else "0h",
             icon = "😴",
@@ -458,7 +488,8 @@ fun ModernHealthDataOverview(
             } else "-",
             suffix = "mmHg",
             icon = "❤️",
-            color = Color(0xFFE53935)
+            color = Color(0xFFE53935),
+            onClick = onNavigateToBloodPressureList
         )
 
         MinimalHealthDataItem(
@@ -468,7 +499,8 @@ fun ModernHealthDataOverview(
             } else "-",
             suffix = "mg/dL",
             icon = "🩸",
-            color = Color(0xFF9C27B0)
+            color = Color(0xFF9C27B0),
+            onClick = onNavigateToBloodGlucoseList
         )
 
         MinimalHealthDataItem(
@@ -478,7 +510,8 @@ fun ModernHealthDataOverview(
             } else "-",
             suffix = "분",
             icon = "🏃",
-            color = Color(0xFF795548)
+            color = Color(0xFF795548),
+            onClick = onNavigateToExerciseList
         )
 
         MinimalHealthDataItem(
