@@ -7,11 +7,14 @@ import android.content.pm.PackageManager
 import android.speech.SpeechRecognizer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,8 +26,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.hdil.rebloomlens.common.plugin_interfaces.Plugin
 import com.hdil.rebloomlens.common.utils.Logger
+import com.hdil.voice_input.llm.OpenAIParser
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 class VoiceInputPlugin(
@@ -92,14 +99,23 @@ class VoiceInputPlugin(
         }
     }
 
-    inner class VoiceInputViewModel {
+    inner class VoiceInputViewModel : ViewModel() {
         var recognizedText = mutableStateOf("")
             private set
         var isListening = mutableStateOf(false)
             private set
+        var parsedResult = mutableStateOf<JSONObject?>(null)
+            private set
+        var isProcessing = mutableStateOf(false)
+            private set
+
+        private var openAIParser = OpenAIParser()
 
         fun initialize(context: Context) {
             // 뷰모델 초기화
+            Logger.e("[$pluginId] VoiceInputViewModel 초기화")
+            openAIParser.initialize()
+
         }
 
         fun startListening() {
@@ -159,6 +175,18 @@ class VoiceInputPlugin(
             recognizerManager.stopListening()
             isListening.value = false
         }
+
+        fun parseRecognizedText() {
+            val text = recognizedText.value
+            if (text.isNotEmpty() && text != "듣는 중..." && text != "말씀해 주세요...") {
+                viewModelScope.launch {
+                    isProcessing.value = true
+                    val result = openAIParser.parseFoodIntake(text)
+                    parsedResult.value = result
+                    isProcessing.value = false
+                }
+            }
+        }
     }
 }
 
@@ -166,6 +194,8 @@ class VoiceInputPlugin(
 fun VoiceInputScreen(viewModel: VoiceInputPlugin.VoiceInputViewModel) {
     val recognizedText = viewModel.recognizedText.value
     val isListening = viewModel.isListening.value
+    val parsedResult = viewModel.parsedResult.value
+    val isProcessing = viewModel.isProcessing.value
 
     Column(
         modifier = Modifier
@@ -184,18 +214,70 @@ fun VoiceInputScreen(viewModel: VoiceInputPlugin.VoiceInputViewModel) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (isListening) {
-            Button(
-                onClick = { viewModel.stopListening() },
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Red
-                )
+
+        if (isProcessing) {
+            androidx.compose.material3.CircularProgressIndicator()
+            Text(
+                text = "OpenAI로 분석 중...",
+                style = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        } else if (parsedResult != null) {
+            Surface(
+                modifier = Modifier.padding(16.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                color = androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant,
+                shadowElevation = 2.dp
             ) {
-                Text("음성 인식 중지")
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "분석 결과",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "음식: ${parsedResult.optString("food", "알 수 없음")}")
+                    Text(text = "개수: ${parsedResult.optInt("quantity", 0)}")
+                }
             }
-        } else {
-            Button(onClick = { viewModel.startListening() }) {
-                Text("음성 인식 시작")
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // 버튼 영역
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(0.8f)
+        ) {
+            if (isListening) {
+                Button(
+                    onClick = { viewModel.stopListening() },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color.Red
+                    ),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("음성 인식 중지")
+                }
+            } else {
+                Button(
+                    onClick = { viewModel.startListening() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("음성 인식 시작")
+                }
+
+                if (recognizedText.isNotEmpty() && recognizedText != "듣는 중..." && recognizedText != "말씀해 주세요...") {
+                    Button(
+                        onClick = { viewModel.parseRecognizedText() },
+                        enabled = !isProcessing,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("분석하기")
+                    }
+                }
             }
         }
     }

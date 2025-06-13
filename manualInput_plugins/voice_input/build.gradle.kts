@@ -1,3 +1,5 @@
+
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -14,6 +16,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField(
+            "String",
+            "OPEN_API_KEY",
+            "${rootProject.extra["OPEN_API_KEY"] as String}"
+        )
+//        buildConfigField("String", "OPEN_API_KEY", properties["OPEN_API_KEY"].toString())
     }
 
     buildTypes {
@@ -34,12 +42,27 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
 
     implementation(project(":common"))
+
+    // OpenAI API 클라이언트
+    implementation("com.aallam.openai:openai-client:3.6.2")
+    implementation("io.ktor:ktor-client-core:2.3.8")
+    implementation("io.ktor:ktor-client-android:2.3.8")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.8")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.8")
+
+    // 필요한 추가 의존성
+    implementation("io.ktor:ktor-client-okhttp:2.3.8")  // OkHttp 엔진 추가
+    implementation("io.ktor:ktor-client-logging:2.3.8")  // 로깅 기능 추가
+
+    // SLF4J 구현체 추가 (로그에서 No SLF4J providers were found 경고 해결)
+    implementation("org.slf4j:slf4j-simple:2.0.7")
 
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
