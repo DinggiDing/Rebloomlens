@@ -52,7 +52,6 @@ import com.samsung.android.sdk.health.data.HealthDataService
 import com.samsung.android.sdk.health.data.HealthDataStore
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.time.Duration
 
 /**
  * ROLE : SamsungHealthPlugin
@@ -228,7 +227,12 @@ fun ModernHealthDataOverview(
         // 건강 데이터를 세로로 한 줄씩 표시
         MinimalHealthDataItem(
             title = "걸음",
-            value = "${steps.sumOf { it.stepCount }}",
+            value = if (steps.isNotEmpty()) {
+                val recentSteps = steps.maxByOrNull { it.startTime }
+                if (recentSteps != null) {
+                    "${recentSteps.stepCount}"
+                } else "0"
+            } else "0",
             suffix = "steps",
             icon = "👣",
             color = Color(0xFF4CAF50)
@@ -257,7 +261,10 @@ fun ModernHealthDataOverview(
         MinimalHealthDataItem(
             title = "운동",
             value = if (exercise.isNotEmpty()) {
-                "${Duration.between(exercise.last().startTime, exercise.last().endTime).toMinutes()}"
+                val latestExercise = exercise.maxByOrNull { it.endTime }
+                latestExercise?.let {
+                    ((it.endTime.toEpochMilli() - it.startTime.toEpochMilli()) / 60000).toString()
+                } ?: "0"
             } else "-",
             suffix = "분",
             icon = "🏃",

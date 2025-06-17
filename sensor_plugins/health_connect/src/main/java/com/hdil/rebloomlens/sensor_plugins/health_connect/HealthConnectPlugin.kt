@@ -506,7 +506,10 @@ fun ModernHealthDataOverview(
         MinimalHealthDataItem(
             title = "운동",
             value = if (exercise.isNotEmpty()) {
-                "${java.time.Duration.between(exercise.last().startTime, exercise.last().endTime).toMinutes()}"
+                val latestExercise = exercise.maxByOrNull { it.endTime }
+                latestExercise?.let {
+                    ((it.endTime.toEpochMilli() - it.startTime.toEpochMilli()) / 60000).toString()
+                } ?: "0"
             } else "-",
             suffix = "분",
             icon = "🏃",

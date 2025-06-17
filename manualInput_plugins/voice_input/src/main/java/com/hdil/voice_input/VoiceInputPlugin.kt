@@ -5,7 +5,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.speech.SpeechRecognizer
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,13 +15,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -245,82 +254,234 @@ fun VoiceInputScreen(viewModel: VoiceInputPlugin.VoiceInputViewModel) {
                 modifier = Modifier.padding(16.dp)
             )
         } else if (parsedResult != null) {
-            Surface(
-                modifier = Modifier.padding(16.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shadowElevation = 2.dp
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = 6.dp
+                )
             ) {
-                LazyColumn(modifier = Modifier.padding(16.dp)) {
-                    item {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
                             text = "분석 결과",
-                            style = TextStyle(
-                                fontSize = 16.sp,
+                            style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold
                             )
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = "날짜: ${parsedResult.optString("date", "날짜 정보 없음")}")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Divider()
+
+                        Text(
+                            text = parsedResult.optString("date", "날짜 정보 없음"),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // meals 배열 처리
                     val meals = parsedResult.optJSONArray("meals") ?: JSONArray()
-                    items(meals.length()) { index ->
-                        val meal = meals.optJSONObject(index) ?: return@items
-                        val mealType = meal.optString("mealType", "알 수 없음")
-                        val translatedType = when(mealType) {
-                            "breakfast" -> "아침"
-                            "lunch" -> "점심"
-                            "dinner" -> "저녁"
-                            "snack" -> "간식"
-                            else -> mealType
-                        }
+                    LazyColumn {
+                        items(meals.length()) { index ->
+                            val meal = meals.optJSONObject(index) ?: return@items
+                            val mealType = meal.optString("mealType", "알 수 없음")
+                            val translatedType = when(mealType) {
+                                "breakfast" -> "아침"
+                                "lunch" -> "점심"
+                                "dinner" -> "저녁"
+                                "snack" -> "간식"
+                                else -> mealType
+                            }
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = "식사: $translatedType",
-                                style = TextStyle(
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
                                 )
-                            )
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+//                                        Icon(
+//                                            imageVector = when(mealType) {
+//                                                "breakfast" -> Icons.Rounded.WbSunny
+//                                                "lunch" -> Icons.Rounded.LightMode
+//                                                "dinner" -> Icons.Rounded.NightlightRound
+//                                                "snack" -> Icons.Rounded.Restaurant
+//                                                else -> Icons.Rounded.FoodBank
+//                                            },
+//                                            contentDescription = translatedType,
+//                                            tint = MaterialTheme.colorScheme.primary,
+//                                            modifier = Modifier.size(24.dp)
+//                                        )
 
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Divider()
-                            Spacer(modifier = Modifier.height(4.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
 
-                            // 식사 항목 표시
-                            val items = meal.optJSONArray("items") ?: JSONArray()
-                            if (items.length() == 0) {
-                                Text("항목 없음", style = TextStyle(fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic))
+                                        Text(
+                                            text = translatedType,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    // 식사 항목 표시
+                                    val items = meal.optJSONArray("items") ?: JSONArray()
+                                    if (items.length() == 0) {
+                                        Text(
+                                            "항목 없음",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontStyle = FontStyle.Italic
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        )
+                                    }
+
+                                    for (i in 0 until items.length()) {
+                                        val item = items.optJSONObject(i) ?: continue
+                                        val food = item.optString("food", "알 수 없음")
+                                        val quantity = item.optDouble("quantity", 0.0)
+                                        val unit = item.optString("unit", "개")
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(6.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primary,
+                                                        shape = CircleShape
+                                                    )
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = food,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = "$quantity$unit",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
                             }
 
-                            for (i in 0 until items.length()) {
-                                val item = items.optJSONObject(i) ?: continue
-                                val food = item.optString("food", "알 수 없음")
-                                val quantity = item.optDouble("quantity", 0.0)
-                                val unit = item.optString("unit", "개")
-
-                                Text("• $food ${quantity}$unit")
+                            if (index < meals.length() - 1) {
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
-                        }
-
-                        if (index < meals.length() - 1) {
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                thickness = 1.dp
-                            )
                         }
                     }
                 }
             }
+
+//            Surface(
+//                modifier = Modifier.padding(16.dp),
+//                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+//                color = MaterialTheme.colorScheme.surfaceVariant,
+//                shadowElevation = 2.dp
+//            ) {
+//                LazyColumn(modifier = Modifier.padding(16.dp)) {
+//                    item {
+//                        Text(
+//                            text = "분석 결과",
+//                            style = TextStyle(
+//                                fontSize = 16.sp,
+//                                fontWeight = FontWeight.Bold
+//                            )
+//                        )
+//                        Spacer(modifier = Modifier.height(8.dp))
+//                        Text(text = "날짜: ${parsedResult.optString("date", "날짜 정보 없음")}")
+//                        Spacer(modifier = Modifier.height(8.dp))
+//                        Divider()
+//                    }
+//
+//                    // meals 배열 처리
+//                    val meals = parsedResult.optJSONArray("meals") ?: JSONArray()
+//                    items(meals.length()) { index ->
+//                        val meal = meals.optJSONObject(index) ?: return@items
+//                        val mealType = meal.optString("mealType", "알 수 없음")
+//                        val translatedType = when(mealType) {
+//                            "breakfast" -> "아침"
+//                            "lunch" -> "점심"
+//                            "dinner" -> "저녁"
+//                            "snack" -> "간식"
+//                            else -> mealType
+//                        }
+//
+//                        Column(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(vertical = 8.dp)
+//                        ) {
+//                            Text(
+//                                text = "식사: $translatedType",
+//                                style = TextStyle(
+//                                    fontSize = 14.sp,
+//                                    fontWeight = FontWeight.Bold
+//                                )
+//                            )
+//
+//                            Spacer(modifier = Modifier.height(4.dp))
+//                            Divider()
+//                            Spacer(modifier = Modifier.height(4.dp))
+//
+//                            // 식사 항목 표시
+//                            val items = meal.optJSONArray("items") ?: JSONArray()
+//                            if (items.length() == 0) {
+//                                Text("항목 없음", style = TextStyle(fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic))
+//                            }
+//
+//                            for (i in 0 until items.length()) {
+//                                val item = items.optJSONObject(i) ?: continue
+//                                val food = item.optString("food", "알 수 없음")
+//                                val quantity = item.optDouble("quantity", 0.0)
+//                                val unit = item.optString("unit", "개")
+//
+//                                Text("• $food ${quantity}$unit")
+//                            }
+//                        }
+//
+//                        if (index < meals.length() - 1) {
+//                            Divider(
+//                                modifier = Modifier.padding(vertical = 8.dp),
+//                                thickness = 1.dp
+//                            )
+//                        }
+//                    }
+//                }
+//            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))

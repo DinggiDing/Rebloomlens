@@ -12,6 +12,8 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import org.json.JSONObject
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class OpenAIParser {
     private var apiKey: String = ""
@@ -41,37 +43,66 @@ class OpenAIParser {
      * }
      */
     suspend fun parseFoodIntake(rawText: String): JSONObject? = withContext(Dispatchers.IO) {
-
         try {
             if (client == null) {
                 Log.e("OpenAIParser", "OpenAI client not initialized.")
                 return@withContext null
             }
 
-            // Prepare messages
+// 시스템 런타임 기준 오늘 날짜 계산 (예: "2025-06-17")
+            val today: String = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+
             val systemPrompt = """
-                당신은 음식 섭취 기록을 파싱하는 JSON 생성기입니다.
-                입력 문장에서 반드시 다음 스키마의 JSON 객체만 출력해야 합니다:
+                당신은 음식 섭취 기록을 파싱하여 **오직** JSON 객체만 출력하는 생성기입니다.  
+                사용자 입력으로부터 다음 스키마에 엄격히 맞는 JSON을 반환해야 하며, 다른 설명이나 텍스트는 일절 포함하지 마세요.
+            
+                스키마:
                 {
-                  "date": "YYYY-MM-DD",
+                  "dateTime": "YYYY-MM-DDTHH:mm:ss",      // 날짜와 시간(문장 내 시간 없으면 ${today}T00:00:00)
                   "meals": [
                     {
                       "mealType": "breakfast|lunch|dinner|snack",
                       "items": [
-                        { "food": "string", "quantity": number, "unit": "string" }
+                        {
+                          "food": "string",              
+                          "quantity": number,            
+                          "unit": "string"               
+                        }
+                      ]
+                    }
+                    // 여러 식사가 입력되면 배열에 추가
+                  ]
+                }
+            
+                지침:
+                1. **dateTime**  
+                   - ISO 8601 형식(`YYYY-MM-DDTHH:mm:ss`)으로.  
+                   - “2025년 6월 16일 오후 1시 30분” → `2025-06-16T13:30:00`  
+                   - “6/16 8시” → `${today}T08:00:00`  
+                   - 시간 언급이 전혀 없으면 `${today}T00:00:00`
+                2. **mealType** 매핑  
+                   - “아침”→`breakfast`, “점심”→`lunch`, “저녁”→`dinner`, “간식”→`snack`  
+                3. **items**  
+                   - `quantity`: 한글 숫자, 소수, 분수(“반”→0.5) 인식 후 숫자형  
+                   - `unit`: 표준 한국어 단위(“개”, “그릇”, “컵” 등)  
+                   - 수량 언급 없으면 `quantity: 1`, 단위 없으면 `unit: "개"`  
+                4. 문장에 여러 식사가 나오면 순서대로 `meals` 배열에 추가  
+                5. 출력 예시 (오직 JSON):
+                ```json
+                {
+                  "dateTime": "${today}T19:45:00",
+                  "meals": [
+                    {
+                      "mealType": "dinner",
+                      "items": [
+                        { "food": "사과", "quantity": 2, "unit": "개" },
+                        { "food": "치킨", "quantity": 1, "unit": "그릇" }
                       ]
                     }
                   ]
                 }
-                - date: 문장에 날짜가 있으면 그 값을, 없으면 오늘 날짜(YYYY-MM-DD)
-                - mealType: “아침”→"breakfast", “점심”→"lunch", “저녁”→"dinner", “간식”→"snack"
-                - items 배열 안에는
-                  - food: 음식명(한국어)
-                  - quantity: 개수(소수 허용)
-                  - unit: 개·그릇·컵·인분·조각 등
-                
-                **오직** 위 JSON 객체만, 다른 텍스트나 설명 없이 반환하세요.
-                """.trimIndent()
+                ```
+            """.trimIndent()
 
             val chatMessages = listOf(
                 ChatMessage(
