@@ -108,6 +108,20 @@ object PluginManager {
                             instanceConfig.put("category", category)
                             instanceConfig.put("title", title)
 
+                            // 넘버패드용
+                            if (instance.has("inputType")) {
+                                instanceConfig.put("inputType", instance.getString("inputType"))
+                            }
+                            if (instance.has("min")) {
+                                instanceConfig.put("min", instance.getInt("min"))
+                            }
+                            if (instance.has("max")) {
+                                instanceConfig.put("max", instance.getInt("max"))
+                            }
+                            if (instance.has("mode")) {
+                                instanceConfig.put("mode", instance.getString("mode"))
+                            }
+
                             // likert_scale 플러그인에만 scale 파라미터 추가
                             if (pluginId == "likert_scale" && instance.has("scale")) {
                                 try {

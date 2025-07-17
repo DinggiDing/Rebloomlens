@@ -30,7 +30,11 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "총 수면 시간?"
+              "title": "총 수면 시간?",
+              "inputType": "number",
+              "mode": "duration",
+              "min": 0,
+              "max": 24
             }
           ]
         },
@@ -90,7 +94,10 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "EORTC QLQ-BR23 (0-100) 점수는?"
+              "title": "EORTC QLQ-BR23 (0-100) 점수는?",
+              "inputType": "number",
+              "min": 0,
+              "max": 100
             }
           ]
         },
