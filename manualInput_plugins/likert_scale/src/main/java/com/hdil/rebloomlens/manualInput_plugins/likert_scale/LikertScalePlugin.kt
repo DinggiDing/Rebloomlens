@@ -52,6 +52,60 @@ class LikertScalePlugin(
 
     @Composable
     override fun renderUI() {
+        val context = LocalContext.current
+
+        // Mode switch: questionnaire or single-question
+        if (config.has("questions")) {
+            RenderQuestionnaireUI()
+        } else {
+            RenderSimpleLikertUI()
+        }
+    }
+
+    @Composable
+    fun RenderSimpleLikertUI() {
+        val title = config.optString("title", "Untitled")
+        val scaleArray = config.optJSONArray("scale")
+        val scale: List<String> = if (scaleArray != null) List(scaleArray.length()) { scaleArray.getString(it) } else emptyList()
+
+        var selectedValue by remember { mutableStateOf("") }
+
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            // ✅ Use the reusable animated Likert scale options
+            AnimatedLikertScaleOptions(
+                scaleValues = scale,
+                selectedValue = selectedValue,
+                onSelect = {
+                    selectedValue = it
+                    Logger.i("[$pluginId] $title -> $selectedValue")
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    Logger.i("[$pluginId] Final response: $selectedValue")
+                },
+                enabled = selectedValue.isNotEmpty()
+            ) {
+                Text("제출")
+            }
+        }
+    }
+
+    @Composable
+    fun RenderQuestionnaireUI() {
         val explanation: String? = config.optString("explanation", null.toString())
         val questionsJson = config.optJSONArray("questions")
 
@@ -122,64 +176,14 @@ class LikertScalePlugin(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                Column(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    questionScale.forEachIndexed { index, value ->
-                        val isSelected = (selectedValue == value)
-
-                        // Animation for background color
-                        val backgroundColor by animateColorAsState(
-                            targetValue = if (isSelected)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            else
-                                Color.Transparent,
-                            animationSpec = tween(durationMillis = 300)
-                        )
-
-                        // Animation for scale
-                        val scale by animateFloatAsState(
-                            targetValue = if (isSelected) 1.03f else 1f,
-                            animationSpec = tween(durationMillis = 300)
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .scale(scale)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    color = backgroundColor,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .clickable {
-                                    responses[currentQuestionIndex] = value
-                                    Logger.i("[$pluginId] ${questionText} -> $value")
-                                }
-                                .padding(8.dp)
-                        ) {
-                            RadioButton(
-                                selected = isSelected,
-                                onClick = {
-                                    responses[currentQuestionIndex] = value
-                                    Logger.i("[$pluginId] ${questionText} -> $value")
-                                },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = MaterialTheme.colorScheme.primary,
-                                    unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
-                            )
-                            Text(
-                                text = value,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
+                AnimatedLikertScaleOptions(
+                    scaleValues = questionScale,
+                    selectedValue = selectedValue,
+                    onSelect = { selected ->
+                        responses[currentQuestionIndex] = selected
+                        Logger.i("[$pluginId] ${questionText} -> $selected")
                     }
-                }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -222,4 +226,57 @@ class LikertScalePlugin(
             }
         }
     }
+
+    @Composable
+    fun AnimatedLikertScaleOptions(
+        scaleValues: List<String>,
+        selectedValue: String,
+        onSelect: (String) -> Unit
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            scaleValues.forEach { value ->
+                val isSelected = (selectedValue == value)
+
+                // Animation for background color and scale
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isSelected)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    else
+                        Color.Transparent,
+                    animationSpec = tween(durationMillis = 300)
+                )
+
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.03f else 1f,
+                    animationSpec = tween(durationMillis = 300)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .scale(scale)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(backgroundColor)
+                        .clickable { onSelect(value) }
+                        .padding(8.dp)
+                ) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = { onSelect(value) },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = MaterialTheme.colorScheme.primary,
+                            unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    )
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+        }
+    }
+
 }
