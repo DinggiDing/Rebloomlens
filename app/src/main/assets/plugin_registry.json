@@ -22,6 +22,89 @@
       "plugin_id": "voice_input"
     }
   ],
+  "scales": {
+    "phq_scale": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+    "gad_scale": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+    "difficulty": ["Not difficult at all", "Somewhat difficult", "Very difficult", "Extremely difficult"],
+    "fcri_scale": [
+      "Not at all",
+      "A little",
+      "Somewhat",
+      "A lot",
+      "A great deal"
+    ],
+    "fcri_q6_scale": [
+      "Not at all at risk",
+      "A little at risk",
+      "Somewhat at risk",
+      "A lot at risk",
+      "A great deal at risk"
+    ],
+    "fcri_q7_scale": [
+      "Never",
+      "A few times a month",
+      "A few times a week",
+      "A few times a day",
+      "Several times a day"
+    ],
+    "fcri_q8_scale": [
+      "I don’t think about it",
+      "A few seconds",
+      "A few minutes",
+      "A few hours",
+      "Several hours"
+    ],
+    "fcri_q9_scale": [
+      "I don’t think about it",
+      "A few weeks",
+      "A few months",
+      "A few years",
+      "Several years"
+    ],
+    "cars_q1_scale": [
+      "1 - I don't think about it at all",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6 - I think about it all the time"
+    ],
+    "cars_q2_scale": [
+      "1 - It does not upset me at all",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6 - I makes me extremely upset"
+    ],
+    "cars_q3_scale": [
+      "1 - I never worry about it",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6 - I worry about it all the time"
+    ],
+    "cars_q4_scale": [
+      "1 - Not at all afraid",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6 - Very afraid"
+    ],
+    "cars_scale": [
+      "1 - Not At All",
+      "2 - A Little",
+      "3 - Moderately",
+      "4 - A lot",
+      "5 - Extremely"
+    ],
+    "distress_scale": [
+      "0 - No distress", "1", "2", "3", "4", "5",
+      "6", "7", "8", "9", "10 - Extreme distress"
+    ]
+  },
   "assignments": [
     {
       "category": "Sleep",
@@ -30,7 +113,11 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "총 수면 시간?"
+              "title": "총 수면 시간?",
+              "inputType": "number",
+              "mode": "duration",
+              "min": 0,
+              "max": 24
             }
           ]
         },
@@ -90,7 +177,10 @@
           "plugin_id": "text_input",
           "instances": [
             {
-              "title": "EORTC QLQ-BR23 (0-100) 점수는?"
+              "title": "EORTC QLQ-BR23 (0-100) 점수는?",
+              "inputType": "number",
+              "min": 0,
+              "max": 100
             }
           ]
         },
@@ -98,12 +188,95 @@
           "plugin_id": "likert_scale",
           "instances": [
             {
-              "title": "PHQ8 (DSM-5기준)",
-              "scale": ["Not at all", "Several days", "More than half the days", "Nearly everyday"]
+              "title": "PHQ-8",
+              "explanation": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+              "questions": [
+                { "text": "Little interest or pleasure in doing things", "scale_id": "phq_scale" },
+                { "text": "Feeling down, depressed, irritable or hopeless", "scale_id": "phq_scale" },
+                { "text": "Trouble falling/staying asleep, or sleeping too much", "scale_id": "phq_scale" },
+                { "text": "Feeling tired or having little energy", "scale_id": "phq_scale" },
+                { "text": "Poor appetite or overeating", "scale_id": "phq_scale" },
+                { "text": "Feeling bad about yourself or feeling like a failure", "scale_id": "phq_scale" },
+                { "text": "Trouble concentrating on things", "scale_id": "phq_scale" },
+                { "text": "Restlessness or slowness others notice", "scale_id": "phq_scale" }
+              ]
             },
             {
-              "title": "GAD7 (DSM-5기준)",
-              "scale": ["매우 나쁨", "나쁨", "보통", "좋음", "매우 좋음"]
+              "title": "GAD-7",
+              "explanation": "Over the last 2 weeks, how often have you been bothered by the following problems?",
+              "questions": [
+                { "text": "Feeling nervous, anxious, or on edge", "scale_id": "gad_scale" },
+                { "text": "Not being able to stop/control worrying", "scale_id": "gad_scale" },
+                { "text": "Worrying too much about different things", "scale_id": "gad_scale" },
+                { "text": "Trouble relaxing", "scale_id": "gad_scale" },
+                { "text": "Restlessness that makes it hard to sit still", "scale_id": "gad_scale" },
+                { "text": "Becoming easily annoyed or irritable", "scale_id": "gad_scale" },
+                { "text": "Feeling afraid something awful might happen", "scale_id": "gad_scale" },
+                { "text":  "If you checked any problems, how difficult have they made it for you to do your work, take care of things at home, or get along with other people?", "scale_id":  "difficulty" }
+              ]
+            },
+            {
+              "title": "FCRI-SF",
+              "explanation": "During the past month, to what degree did each statement apply to you?",
+              "questions": [
+                { "text": "I am worried or anxious about the possibility of cancer recurrence", "scale_id": "fcri_scale" },
+                { "text": "I am afraid of cancer recurrence", "scale_id": "fcri_scale" },
+                { "text": "I believe it is normal to be worried or anxious about the possibility of cancer recurrence", "scale_id": "fcri_scale" },
+                { "text": "When I think about the possibility of cancer recurrence, this triggers other unpleasant thoughts or images (such as death, suffering, the consequences for my family)", "scale_id": "fcri_scale" },
+                { "text": "I believe that I am cured and that the cancer will not come back", "scale_id": "fcri_scale" },
+                { "text": "In your opinion, are you at risk of having a cancer recurrence?", "scale_id": "fcri_q6_scale" },
+                { "text": "How often do you think about the possibility of cancer recurrence?", "scale_id": "fcri_q7_scale" },
+                { "text": "How much time per day do you spend thinking about the possibility of cancer recurrence?", "scale_id": "fcri_q8_scale" },
+                { "text": "How long have you been thinking about the possibility of cancer recurrence?", "scale_id": "fcri_q9_scale" }
+              ]
+            },
+            {
+              "title": "CARS",
+              "explanation": "The following questions ask you to tell us about any worries you may have about the possibility of breast cancer recurrence.",
+              "question_prefix": "I worry that a recurrence of breast cancer would:",
+              "question_prefix_range": [4, 29],
+              "questions": [
+                { "text": "How much time do you spend thinking about the possibility that your breast cancer could recur?", "scale_id": "cars_q1_scale" },
+                { "text": "How much does the possibility that your breast cancer could recur upset you?", "scale_id": "cars_q2_scale" },
+                { "text": "How often do you worry about the possibility that your breast cancer could recur?", "scale_id": "cars_q3_scale" },
+                { "text": "How afraid are you that your breast cancer may recur?", "scale_id": "cars_q4_scale" },
+                { "text": "Upset me emotionally", "scale_id": "cars_scale" },
+                { "text": "Keep me from doing the things I had planned to do", "scale_id": "cars_scale" },
+                { "text": "Threaten my physical health", "scale_id": "cars_scale" },
+                { "text": "Make me feel I am less of a woman", "scale_id": "cars_scale" },
+                { "text": "Require chemotherapy", "scale_id": "cars_scale" },
+                { "text": "Hurt my relationships with friends and family", "scale_id": "cars_scale" },
+                { "text": "Make me feel that I don’t have control over my life", "scale_id": "cars_scale" },
+                { "text": "Threaten my identity (how I see myself)", "scale_id": "cars_scale" },
+                { "text": "Interfere with my physical ability to carry out daily activities", "scale_id": "cars_scale" },
+                { "text": "Threaten my life", "scale_id": "cars_scale" },
+                { "text": "Harm my self-confidence", "scale_id": "cars_scale" },
+                { "text": "Be more serious than the first diagnosis", "scale_id": "cars_scale" },
+                { "text": "Cause financial problems for me", "scale_id": "cars_scale" },
+                { "text": "Interfere with my sense of sexuality", "scale_id": "cars_scale" },
+                { "text": "Require radiation treatment", "scale_id": "cars_scale" },
+                { "text": "Cause me pain and suffering", "scale_id": "cars_scale" },
+                { "text": "Mean losing my breast(s)", "scale_id": "cars_scale" },
+                { "text": "Interfere with my ability to plan for the future", "scale_id": "cars_scale" },
+                { "text": "Threaten my spirituality or faith", "scale_id": "cars_scale" },
+                { "text": "Keep me from fulfilling important roles (in my job or at home)", "scale_id": "cars_scale" },
+                { "text": "Lead me to feel less feminine", "scale_id": "cars_scale" },
+                { "text": "Require further surgery", "scale_id": "cars_scale" },
+                { "text": "Cause me to die", "scale_id": "cars_scale" },
+                { "text": "Damage my romantic relationship(s)", "scale_id": "cars_scale" },
+                { "text": "Keep me from fulfilling me responsibilities (in my job or at home)", "scale_id": "cars_scale" },
+                { "text": "Make me feel badly about how my body looks or feels", "scale_id": "cars_scale" }
+              ]
+            },
+            {
+              "title": "NCCN Distress Thermometer",
+              "explanation": "Distress is an unpleasant experience of a mental, physical, social, or spiritual nature. It can affect the way you think,feel, or act. Distress may make it harder to cope with having cancer, its symptoms, or its treatment.",
+              "questions": [
+                {
+                  "text": "Please rate your distress over the past week, including today",
+                  "scale_id": "distress_scale"
+                }
+              ]
             }
           ]
         }

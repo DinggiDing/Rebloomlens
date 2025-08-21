@@ -55,6 +55,7 @@ object PluginManager {
 
     fun initialize(context: Context) {
         val configJson = ConfigLoader.load(context, "plugin_registry.json")
+        PluginRegistry.config = configJson
         plugins.clear()
         categories.clear()
 
@@ -103,20 +104,15 @@ object PluginManager {
                             // 해당 플러그인의 설정정보 가져오기
                             val baseConfig = pluginConfigMap[pluginId] ?: JSONObject()
 
-                            // 인스턴스 정보 추가 (카테고리, 타이틀 정보 추가)
+                            // Copy all keys from instance JSON
                             val instanceConfig = JSONObject(baseConfig.toString())
-                            instanceConfig.put("category", category)
-                            instanceConfig.put("title", title)
 
-                            // likert_scale 플러그인에만 scale 파라미터 추가
-                            if (pluginId == "likert_scale" && instance.has("scale")) {
-                                try {
-                                    val scaleArray = instance.getJSONArray("scale")
-                                    instanceConfig.put("scale", scaleArray)
-                                } catch (e: Exception) {
-                                    Log.e("PluginManager", "Error parsing scale for likert_scale: ${e.message}")
-                                }
+                            for (key in instance.keys()) {
+                                val value = instance.get(key)
+                                instanceConfig.put(key, value)
                             }
+
+                            instanceConfig.put("category", category)
 
                             val plugin = createPlugin(pluginId, instanceConfig)
                             plugin?.let {
@@ -138,8 +134,14 @@ object PluginManager {
     }
 
     private fun createPlugin(pluginId: String, config: JSONObject): Plugin? {
+        val instanceConfig = JSONObject(config.toString())
+
+        val globalScales = PluginRegistry.config.optJSONObject("scales")
+        if (globalScales != null) {
+            instanceConfig.put("global_scales", globalScales)
+        }
         return when (pluginId) {
-            "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, config)
+            "likert_scale" -> com.hdil.rebloomlens.manualInput_plugins.likert_scale.LikertScalePlugin(pluginId, instanceConfig)
             "text_input" -> com.hdil.rebloomlens.manualInput_plugins.text_input.TextInputPlugin(pluginId, config)
             "health_connect" -> com.hdil.rebloomlens.sensor_plugins.health_connect.HealthConnectPlugin(pluginId, config)
             "samsung_health" -> com.hdil.rebloomlens.samsunghealth_data.SamsungHealthPlugin(pluginId, config)
